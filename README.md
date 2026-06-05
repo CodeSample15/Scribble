@@ -38,13 +38,14 @@ There are countless ways to develop video games and graphical applications. Howe
 - [X] body
 - [X] branch
 - [X] variable_def
-- [X] variable_reference
+- [ ] variable_reference
 - [X] variable_assign
 - [X] vartype
 - [X] core_function
 - [X] start_func
 - [X] update_func
 - [X] expression
+- [ ] chained_identifier
 
 More abstract todo list:
 
@@ -95,7 +96,7 @@ variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , express
 variable_assign     = variable_reference , 
                         INCR_DECR_OP | (ASSIGN_OP , expression)
 
-variable_reference  = ['$'] , identifier , ['[' , expression , {',' expression} ']']
+variable_reference  = ['$'] , (chained_identifier | function_call | identifier) , ['[' , expression , {',' expression} ']']
 
 ASSIGN_OP           = '=' 
                     | '+=' 
@@ -119,6 +120,8 @@ loop                = while_loop | repeat_loop
 
 while_loop          = 'while' , expression , '{' , body , '}'
 repeat_loop         = 'repeat' , expression , '{' , body , '}'
+
+chained_identifier  = identifier , {'.' , identifier}
 
 # mathematical and boolean expressions
 expression          = exp_orl
