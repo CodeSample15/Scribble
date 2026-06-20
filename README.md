@@ -33,7 +33,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [ ] import_statement
 - [X] function_def
 - [X] function_modifier
-- [X] function_call
+- [ ] function_call
 - [X] parameters
 - [X] body
 - [X] branch
@@ -64,7 +64,7 @@ More abstract todo list:
 ```EBNF
 program = {import_statement} , {core_function | function_def | variable_def}
 
-import_statement    = 'use' , file_path , 'as' , identifier
+import_statement    = 'use' , chained_identifier , 'as' , chained_identifier
 
 core_function       = start_func | update_func
 start_func          = ':START:{' , body , '}'
@@ -79,7 +79,7 @@ function_def        = [function_modifier] , 'fun' , identifier , '(' , [paramete
 function_modifier   = '[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
 
 # function_call
-function_call       =  identifier , '(' , [arguments] , ')'
+function_call       =  chained_identifier , '(' , [arguments] , ')'
 
 parameters          = VARTYPE , identifier , {',' , VARTYPE , identifier}
 arguments           = expression , {',' , expression}
