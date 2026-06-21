@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "lex.hpp"
 
 enum NODE_TYPE {
@@ -29,16 +30,14 @@ enum NODE_TYPE {
 
 struct AST_Node {
     NODE_TYPE type;
-    Token tok;
+    std::shared_ptr<Token> tok;
     std::vector<AST_Node> children;
 
-    AST_Node() {
+    AST_Node() : tok(nullptr) {
         this->type=NON;
-        this->tok.type = TOK_TYPE::OTHER;
     }
-    AST_Node(NODE_TYPE type) {
+    AST_Node(NODE_TYPE type) : tok(nullptr) {
         this->type = type;
-        this->tok.type = TOK_TYPE::OTHER;
     }
 };
 

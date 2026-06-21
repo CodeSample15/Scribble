@@ -31,20 +31,20 @@ There are countless ways to develop video games and graphical applications. Howe
 
 - [ ] Program
 - [ ] import_statement
-- [X] function_def
-- [X] function_modifier
+- [ ] function_def
+- [ ] function_modifier
 - [ ] function_call
-- [X] parameters
-- [X] body
-- [X] branch
-- [X] variable_def
+- [ ] parameters
+- [ ] body
+- [ ] branch
+- [ ] variable_def
 - [ ] variable_reference
-- [X] variable_assign
-- [X] vartype
-- [X] core_function
-- [X] start_func
-- [X] update_func
-- [X] expression
+- [ ] variable_assign
+- [ ] vartype
+- [ ] core_function
+- [ ] start_func
+- [ ] update_func
+- [ ] expression
 - [ ] chained_identifier
 
 More abstract todo list:

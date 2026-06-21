@@ -10,7 +10,9 @@
 
 //useful types
 #define AST_Nib_Pair_t std::pair<AST_Node, Nibbler>
+#define AST_Vec_Nib_Pair_t std::pair<std::vector<AST_Node>, Nibbler>
 typedef std::vector<Token> tok_vec_t;
+typedef std::vector<AST_Node> node_vec_t;
 
 //helper class to consume tokens. Called nibbler cuz I'm taking small nibbles from the token vector (Similar to how the Rust library 'Nom' works)
 class Nibbler {
