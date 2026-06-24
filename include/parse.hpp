@@ -9,8 +9,8 @@
 #include "err.hpp"
 
 //useful types
-#define AST_Nib_Pair_t std::pair<AST_Node, Nibbler>
-#define AST_Vec_Nib_Pair_t std::pair<std::vector<AST_Node>, Nibbler>
+#define AST_Nib_Pair_t std::pair<Nibbler, AST_Node>
+#define AST_Vec_Nib_Pair_t std::pair<Nibbler, std::vector<AST_Node>>
 typedef std::vector<Token> tok_vec_t;
 typedef std::vector<AST_Node> node_vec_t;
 

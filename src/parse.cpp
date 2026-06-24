@@ -20,7 +20,7 @@ void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon=t
 
 //{import_statement} , {core_function | function_def | variable_def}
 AST_Nib_Pair_t parse_program(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 
@@ -37,65 +37,65 @@ AST_Nib_Pair_t parse_core_function(Nibbler nibbler) {
 
 //':START:{' , body , '}'
 AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //':UPDATE:{' , body , '}'
 AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //parser functions
 
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 // VARTYPE , identifier , {',' , identifier} , ['=' , expression]
 AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //['$'] , identifier , ['[' , arguments , ']']
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //variable_reference , INCR_DECR_OP | (ASSIGN_OP , expression)
 AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //FUNCTIONS
 
 //[function_modifier] , 'fun' , identifier , '(' , [parameters] , ')' , '{' , body , '}'
 AST_Nib_Pair_t parse_function_def(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //'[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
 AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //identifier , '(' , [arguments] , ')'
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //VARTYPE , identifier , {',' , VARTYPE , identifier}
 AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //expression , { ',' , expression }
 AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 // { (variable_def | variable_assign | branch | function_call | loop) , [';'] }
 AST_Nib_Pair_t parse_body(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //BRANCHES
@@ -112,47 +112,47 @@ AST_Nib_Pair_t parse_branch(Nibbler nibbler) {
 AST_Nib_Pair_t parse_branch_if(Nibbler nibbler) {
     AST_Node expression, body;
 
-    nibbler = require(nibbler, TOK_TYPE::IF).second;
-    tie(expression, nibbler) = parse_expression(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
-    tie(body, nibbler) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+    nibbler = require(nibbler, TOK_TYPE::IF).first;
+    tie(nibbler, expression) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, body) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
     AST_Node res(NODE_TYPE::BRANCH_IF);
     push_children(res, {expression, body});
 
-    return {res, nibbler};
+    return {nibbler, res};
 }
 
 // 'if else' , expression , '{' , body , '}'
 AST_Nib_Pair_t parse_branch_if_else(Nibbler nibbler) {
     AST_Node expression, body;
 
-    nibbler = require(nibbler, TOK_TYPE::IF_ELSE).second;
-    tie(expression, nibbler) = parse_expression(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
-    tie(body, nibbler) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+    nibbler = require(nibbler, TOK_TYPE::IF_ELSE).first;
+    tie(nibbler, expression) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, body) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
     AST_Node res(NODE_TYPE::BRANCH_IF_ELSE);
     push_children(res, {expression, body});
 
-    return {res, nibbler};
+    return {nibbler, res};
 }
 
 // 'else' , '{' , body , '}'
 AST_Nib_Pair_t parse_branch_else(Nibbler nibbler) {
     AST_Node body;
 
-    nibbler = require(nibbler, TOK_TYPE::ELSE).second;
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
-    tie(body, nibbler) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+    nibbler = require(nibbler, TOK_TYPE::ELSE).first;
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, body) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
     AST_Node res(NODE_TYPE::LOOP_REPEAT);
     push_children(res, {body});
 
-    return {res, nibbler};
+    return {nibbler, res};
 }
 
 //LOOPS
@@ -166,32 +166,32 @@ AST_Nib_Pair_t parse_loop(Nibbler nibbler) {
 AST_Nib_Pair_t parse_while_loop(Nibbler nibbler) {
     AST_Node expression, body;
 
-    nibbler = require(nibbler, TOK_TYPE::WHILE).second;
-    tie(expression, nibbler) = parse_expression(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
-    tie(body, nibbler) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+    nibbler = require(nibbler, TOK_TYPE::WHILE).first;
+    tie(nibbler, expression) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, body) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
     AST_Node res(NODE_TYPE::LOOP_WHILE);
     push_children(res, {expression, body});
 
-    return {res, nibbler};
+    return {nibbler, res};
 }
 
 // 'repeat' , expression , '{' , body , '}'
 AST_Nib_Pair_t parse_repeat_loop(Nibbler nibbler) {
     AST_Node expression, body;
 
-    nibbler = require(nibbler, TOK_TYPE::REPEAT).second;
-    tie(expression, nibbler) = parse_expression(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
-    tie(body, nibbler) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+    nibbler = require(nibbler, TOK_TYPE::REPEAT).first;
+    tie(nibbler, expression) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, body) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
     AST_Node res(NODE_TYPE::LOOP_REPEAT);
     push_children(res, {expression, body});
 
-    return {res, nibbler};
+    return {nibbler, res};
 }
 
 //EXPRESSIONS
@@ -248,28 +248,7 @@ AST_Nib_Pair_t parse_exp_mult(Nibbler nibbler) {
 
 //exp_not , [ '**' , exp_pow ]
 AST_Nib_Pair_t parse_exp_pow(Nibbler nibbler) {
-    AST_Node not_node;
-    tie(not_node, nibbler) = parse_exp_not(nibbler);
-
-    AST_Node tmp;
-    bool use_pow = false;
-    tie(tmp, nibbler) = opt(nibbler, [&](Nibbler n) {
-        n = require(n, TOK_TYPE::POW).second;
-        tie(tmp, n) = parse_exp_pow(n);
-
-        use_pow = true;
-        return n;
-    });
-
-    if(use_pow) {
-        AST_Node pow_node;
-        pow_node.type = NODE_TYPE::EXP_POW;
-        pow_node.children.push_back(not_node);
-        pow_node.children.push_back(tmp);
-        return {pow_node, nibbler};
-    }
-
-    return {not_node, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 //['!'] , exp_primary
@@ -277,19 +256,19 @@ AST_Nib_Pair_t parse_exp_not(Nibbler nibbler) {
     AST_Node not_node;
     bool use_not = false;
     try {
-        tie(not_node, nibbler) = require(nibbler, TOK_TYPE::NOT);
+        tie(nibbler, not_node) = require(nibbler, TOK_TYPE::NOT);
         use_not = true;
     } catch(ScribbleErr&) {}
 
     AST_Node primary;
-    tie(primary, nibbler) = parse_exp_primary(nibbler);
+    tie(nibbler, primary) = parse_exp_primary(nibbler);
 
     if(use_not) {
         not_node.children.push_back(primary);
-        return {not_node, nibbler};
+        return {nibbler, not_node};
     }
 
-    return {primary, nibbler};
+    return {nibbler, primary};
 }
 
 //variable_reference | literal | '(' , expression , ')' | function_call
@@ -299,25 +278,25 @@ AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
                 [&](Nibbler n){ return alt_types(nibbler, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE}); },
                 [&](Nibbler n){
                     AST_Node expr;
-                    n = require(n, TOK_TYPE::OPEN_PAREN).second;
-                    tie(expr, n) = parse_expression(n);
-                    n = require(n, TOK_TYPE::CLOSE_PAREN).second;
+                    n = require(n, TOK_TYPE::OPEN_PAREN).first;
+                    tie(n, expr) = parse_expression(n);
+                    n = require(n, TOK_TYPE::CLOSE_PAREN).first;
 
-                    return (AST_Nib_Pair_t){expr, n};
+                    return (AST_Nib_Pair_t){n, expr};
                 }});
 }
 
 //helper function 
 AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > expression_seg, vector<TOK_TYPE> exp_symbols, NODE_TYPE out_type) {
     AST_Node first;
-    tie(first, nibbler) = expression_seg(nibbler);
+    tie(nibbler, first) = expression_seg(nibbler);
 
     nibbler = many_0_lambda(nibbler, [&](Nibbler n) {
         AST_Node symbol;
-        tie(symbol, n) = alt_types(n, exp_symbols);
+        tie(n, symbol) = alt_types(n, exp_symbols);
 
         AST_Node second;
-        tie(second, n) = expression_seg(n);
+        tie(n, second) = expression_seg(n);
         
         symbol.children.push_back(first);
         symbol.children.push_back(second);
@@ -327,7 +306,7 @@ AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair
         return n;
     });
 
-    return {first, nibbler};
+    return {nibbler, first};
 }
 
 //define helper functions
@@ -341,7 +320,7 @@ AST_Nib_Pair_t alt_types(Nibbler nibbler, std::vector<TOK_TYPE> types) {
     }
 
     throw last_e;
-    return {NON_NODE, nibbler}; //this line only exists to please the compiler god
+    return {nibbler, NON_NODE}; //this line only exists to please the compiler god
 }
 
 AST_Nib_Pair_t alt(Nibbler nibbler, std::vector<std::function< AST_Nib_Pair_t(Nibbler) >> funcs) {
@@ -356,7 +335,7 @@ AST_Nib_Pair_t alt(Nibbler nibbler, std::vector<std::function< AST_Nib_Pair_t(Ni
     
     //if no pattern was found throw the last error reaped from scanning
     throw last_e;
-    return {NON_NODE, nibbler}; //this line only exists to please the compiler god
+    return {nibbler, NON_NODE}; //this line only exists to please the compiler god
 }
 
 AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
@@ -376,11 +355,11 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
         }
 
         tmp.tok = std::make_unique<Token>(next);
-        return {tmp, nibbler};
+        return {nibbler, tmp};
     }
 
     throw (ScribbleErr) { next.line, next.start_col, tok_type_to_string(type), ERR_TYPE::EXPECTED };
-    return {NON_NODE, nibbler};
+    return {nibbler, NON_NODE};
 }
 
 AST_Nib_Pair_t opt(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > func) {
@@ -388,7 +367,7 @@ AST_Nib_Pair_t opt(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > fun
         return func(nibbler); //return new location
     } catch(ScribbleErr&) {}
 
-    return {NON_NODE, nibbler}; //return original location
+    return {nibbler, NON_NODE}; //return original location
 }
 
 AST_Vec_Nib_Pair_t many_0(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > func) {
@@ -397,12 +376,12 @@ AST_Vec_Nib_Pair_t many_0(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler
     while(true) {
         try {
             AST_Node tmp;
-            tie(tmp, nibbler) = func(nibbler);
+            tie(nibbler, tmp) = func(nibbler);
             res.push_back(tmp);
         } catch(ScribbleErr&) { break; }
     }
 
-    return {res, nibbler};
+    return {nibbler, res};
 }
 
 Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func) {
