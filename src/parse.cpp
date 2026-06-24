@@ -16,7 +16,7 @@ Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func);
 AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > expression_seg, vector<TOK_TYPE> exp_symbols, NODE_TYPE out_type);
 
 void push_child(AST_Node &parent, AST_Node &child);
-void push_children(AST_Node &parent, vector<AST_Node> children);
+void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon=true);
 
 //{import_statement} , {core_function | function_def | variable_def}
 AST_Nib_Pair_t parse_program(Nibbler nibbler) {
@@ -102,22 +102,57 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
 
 // branch = branch_if ,  {branch_ifelse} , [branch_else]
 AST_Nib_Pair_t parse_branch(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    AST_Node ifNode, elseNode;
+    node_vec_t ifElseNodes;
+
+    
 }
 
 // 'if' , expression , '{' , body , '}'
 AST_Nib_Pair_t parse_branch_if(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    AST_Node expression, body;
+
+    nibbler = require(nibbler, TOK_TYPE::IF).second;
+    tie(expression, nibbler) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
+    tie(body, nibbler) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+
+    AST_Node res(NODE_TYPE::BRANCH_IF);
+    push_children(res, {expression, body});
+
+    return {res, nibbler};
 }
 
 // 'if else' , expression , '{' , body , '}'
 AST_Nib_Pair_t parse_branch_if_else(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    AST_Node expression, body;
+
+    nibbler = require(nibbler, TOK_TYPE::IF_ELSE).second;
+    tie(expression, nibbler) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
+    tie(body, nibbler) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+
+    AST_Node res(NODE_TYPE::BRANCH_IF_ELSE);
+    push_children(res, {expression, body});
+
+    return {res, nibbler};
 }
 
 // 'else' , '{' , body , '}'
 AST_Nib_Pair_t parse_branch_else(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    AST_Node body;
+
+    nibbler = require(nibbler, TOK_TYPE::ELSE).second;
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
+    tie(body, nibbler) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+
+    AST_Node res(NODE_TYPE::LOOP_REPEAT);
+    push_children(res, {body});
+
+    return {res, nibbler};
 }
 
 //LOOPS
@@ -129,12 +164,34 @@ AST_Nib_Pair_t parse_loop(Nibbler nibbler) {
 
 // 'while' , expression , '{' , body , '}'
 AST_Nib_Pair_t parse_while_loop(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    AST_Node expression, body;
+
+    nibbler = require(nibbler, TOK_TYPE::WHILE).second;
+    tie(expression, nibbler) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
+    tie(body, nibbler) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+
+    AST_Node res(NODE_TYPE::LOOP_WHILE);
+    push_children(res, {expression, body});
+
+    return {res, nibbler};
 }
 
 // 'repeat' , expression , '{' , body , '}'
 AST_Nib_Pair_t parse_repeat_loop(Nibbler nibbler) {
-    return {NON_NODE, nibbler};
+    AST_Node expression, body;
+
+    nibbler = require(nibbler, TOK_TYPE::REPEAT).second;
+    tie(expression, nibbler) = parse_expression(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).second;
+    tie(body, nibbler) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).second;
+
+    AST_Node res(NODE_TYPE::LOOP_REPEAT);
+    push_children(res, {expression, body});
+
+    return {res, nibbler};
 }
 
 //EXPRESSIONS
@@ -362,8 +419,9 @@ void push_child(AST_Node &parent, AST_Node &child) {
     parent.children.push_back(child);
 }
 
-void push_children(AST_Node &parent, vector<AST_Node> children) {
+void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon) {
     for(AST_Node &c : children) {
+        if(ignoreNon && c.type == NON) continue;
         parent.children.push_back(c);
     }
 }
