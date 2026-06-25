@@ -9,13 +9,13 @@ using namespace std;
 AST_Nib_Pair_t alt_types(Nibbler nibbler, std::vector<TOK_TYPE> types);
 AST_Nib_Pair_t alt(Nibbler nibbler, std::vector<std::function< AST_Nib_Pair_t(Nibbler) >> funcs);
 AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type);
+AST_Nib_Pair_t opt(Nibbler nibbler, TOK_TYPE type);
 AST_Nib_Pair_t opt(Nibbler nibbler, std::function< Nibbler(Nibbler) > func);
 AST_Vec_Nib_Pair_t many_0(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > func);
 Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func);
 
 AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > expression_seg, vector<TOK_TYPE> exp_symbols, NODE_TYPE out_type);
 
-void push_child(AST_Node &parent, AST_Node &child);
 void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon=true);
 
 //{import_statement} , {core_function | function_def | variable_def}
@@ -95,7 +95,21 @@ AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
 
 // { (variable_def | variable_assign | branch | function_call | loop) , [';'] }
 AST_Nib_Pair_t parse_body(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    node_vec_t body_children;
+
+    tie(nibbler, body_children) = many_0(nibbler, [&](Nibbler n) {
+        AST_Node res;
+
+        tie(nibbler, res) = alt(nibbler, {parse_variable_def, parse_variable_assign, parse_branch, parse_function_call, parse_loop});
+        nibbler = opt(nibbler, TOK_TYPE::SEMICOLON).first;
+
+        return (AST_Nib_Pair_t){n, res};
+    });
+    
+    AST_Node body(NODE_TYPE::BODY);
+    push_children(body, body_children);
+    
+    return {nibbler, body};
 }
 
 //BRANCHES
@@ -369,6 +383,14 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
 
     throw (ScribbleErr) { next.line, next.start_col, tok_type_to_string(type), ERR_TYPE::EXPECTED };
     return {nibbler, NON_NODE};
+}
+
+AST_Nib_Pair_t opt(Nibbler nibbler, TOK_TYPE type) {
+    try {
+        return require(nibbler, type); //return new location
+    } catch(ScribbleErr&) {}
+
+    return {nibbler, NON_NODE}; //return original location
 }
 
 AST_Nib_Pair_t opt(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > func) {
