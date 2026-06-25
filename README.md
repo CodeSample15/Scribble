@@ -36,7 +36,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [ ] function_call
 - [ ] parameters
 - [ ] body
-- [ ] branch
+- [X] branch
 - [ ] variable_def
 - [ ] variable_reference
 - [ ] variable_assign
@@ -44,7 +44,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [ ] core_function
 - [ ] start_func
 - [ ] update_func
-- [ ] expression
+- [X] expression
 - [ ] chained_identifier
 
 More abstract todo list:
@@ -96,12 +96,12 @@ variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , express
 variable_assign     = variable_reference , 
                         INCR_DECR_OP | (ASSIGN_OP , expression)
 
-variable_reference  = ['$'] , (chained_identifier | function_call | identifier) , ['[' , expression , {',' expression} ']']
+variable_reference  = ['$'] , (chained_identifier | function_call) , ['[' , expression , {',' expression} ']']
 
-ASSIGN_OP           = '=' 
-                    | '+=' 
-                    | '-=' 
-                    | '/=' 
+ASSIGN_OP           = '='
+                    | '+='
+                    | '-='
+                    | '/='
                     | '*='
 INCR_DECR_OP        = '--' | '++'
 
@@ -121,7 +121,7 @@ loop                = while_loop | repeat_loop
 while_loop          = 'while' , expression , '{' , body , '}'
 repeat_loop         = 'repeat' , expression , '{' , body , '}'
 
-chained_identifier  = identifier , {'.' , identifier}
+chained_identifier  = [chained_identifier , '.'] , (function_call | identifier)
 
 # mathematical and boolean expressions
 expression          = exp_orl

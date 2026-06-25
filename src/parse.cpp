@@ -105,7 +105,16 @@ AST_Nib_Pair_t parse_branch(Nibbler nibbler) {
     AST_Node ifNode, elseNode;
     node_vec_t ifElseNodes;
 
-    
+    tie(nibbler, ifNode) = parse_branch_if(nibbler);
+    tie(nibbler, ifElseNodes) = many_0(nibbler, parse_branch_if_else);
+    tie(nibbler, elseNode) = opt(nibbler, parse_branch_else);
+
+    AST_Node res(NODE_TYPE::BRANCH);
+    push_children(res, {ifNode});
+    push_children(res, ifElseNodes);
+    push_children(res, {elseNode});
+
+    return {nibbler, res};
 }
 
 // 'if' , expression , '{' , body , '}'
@@ -394,13 +403,9 @@ Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func) {
     return nibbler;
 }
 
-void push_child(AST_Node &parent, AST_Node &child) {
-    parent.children.push_back(child);
-}
-
 void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon) {
     for(AST_Node &c : children) {
-        if(ignoreNon && c.type == NON) continue;
+        if(ignoreNon && c.type == NODE_TYPE::NON) continue;
         parent.children.push_back(c);
     }
 }
