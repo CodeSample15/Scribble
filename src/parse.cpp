@@ -90,7 +90,20 @@ AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
 
 //expression , { ',' , expression }
 AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node first;
+    node_vec_t rest;
+
+    tie(nibbler, first) = parse_expression(nibbler);
+    tie(nibbler, rest) = many_0(nibbler, [](Nibbler n) {
+        n = require(n, TOK_TYPE::COMMA).first;
+        return parse_expression(n);
+    });
+
+    AST_Node res(NODE_TYPE::ARGUMENTS);
+    push_children(res, {first});
+    push_children(res, rest);
+
+    return {nibbler, res};
 }
 
 // { (variable_def | variable_assign | branch | function_call | loop) , [';'] }
