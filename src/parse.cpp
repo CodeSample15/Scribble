@@ -47,18 +47,70 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
 
 //parser functions
 
+//('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node vartype;
+    tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
+    vartype.type = NODE_TYPE::VAR_TYPE;
+
+    return {nibbler, vartype};
 }
 
 // VARTYPE , identifier , {',' , identifier} , ['=' , expression]
 AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node vartype, first, expression;
+    node_vec_t rest;
+
+    tie(nibbler, vartype) = parse_vartype(nibbler);
+    tie(nibbler, first) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::COMMA).first;
+        return require(n, TOK_TYPE::IDENTIFIER);
+    });
+    nibbler = require(nibbler, TOK_TYPE::EQUALS).first;
+    tie(nibbler, expression) = parse_expression(nibbler);
+
+    AST_Node res(NODE_TYPE::VARIABLE_DEF);
+    push_children(res, {vartype, first});
+    push_children(res, rest);
+    push_children(res, {expression});
+
+    return {nibbler, res};
 }
 
-//['$'] , chained_identifier , ['[' , arguments , ']']
+//normal_var_ref | built_in_var_ref
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node tmp;
+    tie(nibbler, tmp) = alt(nibbler, {parse_built_in_var_ref, parse_normal_var_ref});
+
+    AST_Node res(NODE_TYPE::VARIABLE_REFERENCE);
+    push_children(res, {tmp});
+
+    return {nibbler, res};
+}
+
+//'$' , identifier
+AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler) {
+    AST_Node tmp;
+    nibbler = require(nibbler, TOK_TYPE::BUILT_IN_VARIABLE_REF).first;
+    tie(nibbler, tmp) = require(nibbler, TOK_TYPE::IDENTIFIER);
+
+    tmp.type = NODE_TYPE::BUILT_IN_VAR_REFERENCE;
+
+    return {nibbler, tmp};
+}
+
+//chained_identifier , [arr_index]
+AST_Nib_Pair_t parse_normal_var_ref(Nibbler nibbler) {
+    AST_Node identifier, arr_index;
+    
+    tie(nibbler, identifier) = parse_chained_identifier(nibbler);
+    tie(nibbler, arr_index) = opt(nibbler, parse_arr_index);
+
+    AST_Node res(NODE_TYPE::ARR_INDEX);
+    push_children(res, {identifier, arr_index});
+
+    return {nibbler, res};
 }
 
 //variable_reference , ASSIGN_OP , expression
@@ -75,6 +127,25 @@ AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler) {
 
     AST_Node res(NODE_TYPE::VARIABLE_ASSIGN);
     push_children(res, {var_ref, assign_op, expression});
+
+    return {nibbler, res};
+}
+
+//'[' , expression , {',' expression} , ']'
+AST_Nib_Pair_t parse_arr_index(Nibbler nibbler) {
+    AST_Node first;
+    node_vec_t rest;
+
+    nibbler = require(nibbler, TOK_TYPE::OPEN_BRACKET).first;
+    tie(nibbler, first) = parse_expression(nibbler);
+    tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::COMMA).first;
+        return parse_expression(n);
+    });
+
+    AST_Node res(NODE_TYPE::ARR_INDEX);
+    push_children(res, {first});
+    push_children(res, rest);
 
     return {nibbler, res};
 }

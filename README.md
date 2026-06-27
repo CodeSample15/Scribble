@@ -41,7 +41,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [ ] variable_def
 - [ ] variable_reference
 - [X] variable_assign
-- [ ] vartype
+- [X] vartype
 - [ ] core_function
 - [ ] start_func
 - [ ] update_func
@@ -96,7 +96,13 @@ body                = {(variable_def
 variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , expression]
 variable_assign     = variable_reference , ASSIGN_OP , expression
 
-variable_reference  = ['$'] , (chained_identifier | function_call) , ['[' , expression , {',' expression} ']']
+variable_reference  = normal_var_ref
+                    | built_in_var_ref
+                    
+normal_var_ref      = chained_identifier , [arr_index]
+built_in_var_ref    = '$' , identifier
+
+arr_index           = '[' , expression , {',' expression} , ']'
 
 ASSIGN_OP           = '='
                     | '+='
@@ -167,6 +173,7 @@ Derived from C, but stripped down a lot
 
 ## Example
 
+<!--> Using Rust as the language type because it has the closest syntax highlighting <-->
 ```rust
 use my_library as lib
 use folder/fancy_graphics as graph
