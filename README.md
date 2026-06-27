@@ -34,7 +34,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [ ] function_def
 - [ ] function_modifier
 - [ ] function_call
-- [ ] parameters
+- [X] parameters
 - [X] arguments
 - [X] body
 - [X] branch

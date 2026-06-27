@@ -85,7 +85,29 @@ AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
 
 //VARTYPE , identifier , {',' , VARTYPE , identifier}
 AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node vartype, identifier;
+    node_vec_t params;
+
+    tie(nibbler, vartype) = parse_vartype(nibbler);
+    tie(nibbler, identifier) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    params.push_back(vartype);
+    params.push_back(identifier);
+
+    nibbler = many_0_lambda(nibbler, [&](Nibbler n){
+        n = require(n, TOK_TYPE::COMMA).first;
+
+        tie(n, vartype) = parse_vartype(n);
+        tie(n, identifier) = require(n, TOK_TYPE::IDENTIFIER);
+        params.push_back(vartype);
+        params.push_back(identifier);
+
+        return n;
+    });
+
+    AST_Node res(NODE_TYPE::PARAMETERS);
+    push_children(res, params);
+
+    return {nibbler, res};
 }
 
 //expression , { ',' , expression }
@@ -384,8 +406,12 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
             case TOK_TYPE::STRING_LITERAL:
             case TOK_TYPE::INT_LITERAL:
             case TOK_TYPE::FLOAT_LITERAL:
-            tmp.type = NODE_TYPE::EXP_PRIMARY;
-            break;
+                tmp.type = NODE_TYPE::EXP_PRIMARY;
+                break;
+
+            case TOK_TYPE::IDENTIFIER:
+                tmp.type = NODE_TYPE::IDENT;
+                break;
 
             default: break;
         }
