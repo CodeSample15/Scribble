@@ -131,15 +131,11 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
         case '+': 
             if(fr.has_next("=", lexeme))
                 return TOK_TYPE::PLUS_EQUALS;
-            else if(fr.has_next("+", lexeme))
-                return TOK_TYPE::INCR;
             else
                 return TOK_TYPE::PLUS;
         case '-':
             if(fr.has_next("=", lexeme))    
                 return TOK_TYPE::MINUS_EQUALS;
-            else if(fr.has_next("-", lexeme)) 
-                return TOK_TYPE::DECR;
             else
                 return TOK_TYPE::MINUS;
         case '/':

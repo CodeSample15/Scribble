@@ -60,9 +60,6 @@ enum TOK_TYPE {
     SLASH_EQUALS,                   // /=
     STAR_EQUALS,                    // *=
 
-    INCR,                           // ++
-    DECR,                           // --
-
     //special characters
     IMAGE_REF,                      // @
     BUILT_IN_VARIABLE_REF,          // $

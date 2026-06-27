@@ -10,7 +10,7 @@ enum NODE_TYPE {
     START_FUNC, UPDATE_FUNC,
 
     VAR_TYPE,
-    ASSIGN,
+    ASSIGN_OP,
 
     BODY, BRANCH,
 

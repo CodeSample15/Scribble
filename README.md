@@ -31,7 +31,7 @@ There are countless ways to develop video games and graphical applications. Howe
 
 - [ ] Program
 - [ ] import_statement
-- [ ] function_def
+- [X] function_def
 - [ ] function_modifier
 - [ ] function_call
 - [X] parameters
@@ -40,7 +40,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [X] branch
 - [ ] variable_def
 - [ ] variable_reference
-- [ ] variable_assign
+- [X] variable_assign
 - [ ] vartype
 - [ ] core_function
 - [ ] start_func
@@ -94,8 +94,7 @@ body                = {(variable_def
 
 # variables
 variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , expression]
-variable_assign     = variable_reference , 
-                        INCR_DECR_OP | (ASSIGN_OP , expression)
+variable_assign     = variable_reference , ASSIGN_OP , expression
 
 variable_reference  = ['$'] , (chained_identifier | function_call) , ['[' , expression , {',' expression} ']']
 
@@ -110,10 +109,10 @@ VARTYPE             = ('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
 ARR_TYPE            = '[' , expression, {',' , expression} , ']'
 
 # branches
-branch = branch_if ,  {branch_if_else} , [branch_else]
+branch              = branch_if ,  {branch_if_else} , [branch_else]
 
 branch_if           = 'if' , expression , '{' , body , '}'
-branch_if_else       = 'if else' , expression , '{' , body , '}'
+branch_if_else      = 'if else' , expression , '{' , body , '}'
 branch_else         = 'else' , '{' , body , '}'
 
 # loops

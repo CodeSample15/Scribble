@@ -56,31 +56,86 @@ AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
     return {nibbler, NON_NODE};
 }
 
-//['$'] , identifier , ['[' , arguments , ']']
+//['$'] , chained_identifier , ['[' , arguments , ']']
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
     return {nibbler, NON_NODE};
 }
 
-//variable_reference , INCR_DECR_OP | (ASSIGN_OP , expression)
+//variable_reference , ASSIGN_OP , expression
 AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node var_ref, assign_op, expression;
+
+    tie(nibbler, var_ref) = parse_variable_reference(nibbler);
+    tie(nibbler, assign_op) = alt_types(nibbler, {TOK_TYPE::PLUS_EQUALS,
+                                                    TOK_TYPE::MINUS_EQUALS,
+                                                    TOK_TYPE::SLASH_EQUALS,
+                                                    TOK_TYPE::STAR_EQUALS,
+                                                    TOK_TYPE::EQUALS});
+    tie(nibbler, expression) = parse_expression(nibbler);
+
+    AST_Node res(NODE_TYPE::VARIABLE_ASSIGN);
+    push_children(res, {var_ref, assign_op, expression});
+
+    return {nibbler, res};
 }
 
 //FUNCTIONS
 
 //[function_modifier] , 'fun' , identifier , '(' , [parameters] , ')' , '{' , body , '}'
 AST_Nib_Pair_t parse_function_def(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node modifier, identifier, parameters, body;
+
+    tie(nibbler, modifier) = opt(nibbler, parse_function_modifier);
+
+    nibbler = require(nibbler, TOK_TYPE::FUNCTION_DEFINE).first;
+    tie(nibbler, identifier) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_PAREN).first;
+    tie(nibbler, parameters) = opt(nibbler, parse_parameters);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_PAREN).first;
+
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, body) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+
+    AST_Node res(NODE_TYPE::FUNCTION_DEF);
+    push_children(res, {modifier, identifier, parameters, body});
+
+    return {nibbler, res};
 }
 
 //'[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
 AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node first;
+    node_vec_t rest;
+
+    nibbler = require(nibbler, TOK_TYPE::OPEN_BRACKET).first;
+    tie(nibbler, first) = require(nibbler, TOK_TYPE::IDENTIFIER);
+
+    tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::COMMA).first;
+        return require(n, TOK_TYPE::IDENTIFIER);
+    });
+
+    AST_Node res(NODE_TYPE::FUNCTION_MODIFIER);
+    push_children(res, {first});
+    push_children(res, rest);
+
+    return {nibbler, res};
 }
 
-//identifier , '(' , [arguments] , ')'
+//chained_identifier , '(' , [arguments] , ')'
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node identifier, arguments;
+
+    tie(nibbler, identifier) = parse_chained_identifier(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_PAREN).first;
+    tie(nibbler, arguments) = opt(nibbler, parse_arguments);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_PAREN).first;
+
+    AST_Node res(NODE_TYPE::FUNCTION_CALL);
+    push_children(res, {identifier, arguments});
+
+    return {nibbler, res};
 }
 
 //VARTYPE , identifier , {',' , VARTYPE , identifier}
@@ -344,6 +399,11 @@ AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
                 }});
 }
 
+//[chained_identifier , '.'] , (function_call | identifier)
+AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
+    return {nibbler, NON_NODE};
+}
+
 //helper function 
 AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > expression_seg, vector<TOK_TYPE> exp_symbols, NODE_TYPE out_type) {
     AST_Node first;
@@ -401,7 +461,7 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
     Token next = nibbler.next();
 
     if(next.type == type) {
-        //set tmp node type depending on the token type
+        //set node type depending on the token type
         switch(type) {
             case TOK_TYPE::STRING_LITERAL:
             case TOK_TYPE::INT_LITERAL:
@@ -412,6 +472,13 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
             case TOK_TYPE::IDENTIFIER:
                 tmp.type = NODE_TYPE::IDENT;
                 break;
+
+            case TOK_TYPE::PLUS_EQUALS:
+            case TOK_TYPE::MINUS_EQUALS:
+            case TOK_TYPE::SLASH_EQUALS:
+            case TOK_TYPE::STAR_EQUALS:
+            case TOK_TYPE::EQUALS:
+                tmp.type = NODE_TYPE::ASSIGN_OP;
 
             default: break;
         }
