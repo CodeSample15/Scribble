@@ -37,12 +37,40 @@ AST_Nib_Pair_t parse_core_function(Nibbler nibbler) {
 
 //':START:{' , body , '}'
 AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node tmp;
+    nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
+    tie(nibbler, tmp) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    if(tmp.tok->lexeme != "START")
+        throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "START", ERR_TYPE::EXPECTED};
+    nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
+
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, tmp) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+
+    AST_Node res(NODE_TYPE::START_FUNC);
+    push_children(res, {tmp});
+
+    return {nibbler, res};
 }
 
 //':UPDATE:{' , body , '}'
 AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node tmp;
+    nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
+    tie(nibbler, tmp) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    if(tmp.tok->lexeme != "UPDATE")
+        throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "UPDATE", ERR_TYPE::EXPECTED};
+    nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
+
+    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+    tie(nibbler, tmp) = parse_body(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+
+    AST_Node res(NODE_TYPE::UPDATE_FUNC);
+    push_children(res, {tmp});
+
+    return {nibbler, res};
 }
 
 //parser functions
@@ -472,7 +500,26 @@ AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
 
 //[chained_identifier , '.'] , (function_call | identifier)
 AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node children;
+
+    tie(nibbler, children) = opt(nibbler, [&](Nibbler n){
+        AST_Node tmp;
+        tie(n, tmp) = parse_chained_identifier(n);
+        n = require(n, TOK_TYPE::DOT).first;
+        return AST_Nib_Pair_t{n, tmp};
+    });
+
+    AST_Node res;
+    tie(nibbler, res) = alt(nibbler, {
+        parse_function_call, 
+        [&](Nibbler n) {
+            return require(n, TOK_TYPE::IDENTIFIER);
+        }
+    });
+
+    push_children(res, {children});
+
+    return {nibbler, res};
 }
 
 //helper function 

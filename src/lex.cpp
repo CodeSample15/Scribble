@@ -126,6 +126,7 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
         case '[': return TOK_TYPE::OPEN_BRACKET;
         case ']': return TOK_TYPE::CLOSE_BRACKET;
         case ';': return TOK_TYPE::SEMICOLON;
+        case '.': return TOK_TYPE::DOT;
         case ',': return TOK_TYPE::COMMA;
         case '%': return TOK_TYPE::PERCENT;
         case '+': 

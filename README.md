@@ -29,22 +29,22 @@ There are countless ways to develop video games and graphical applications. Howe
 
 ### Parser (version 1):
 
-- [ ] Program
+- [X] Program
 - [ ] import_statement
 - [X] function_def
-- [ ] function_modifier
-- [ ] function_call
+- [X] function_modifier
+- [X] function_call
 - [X] parameters
 - [X] arguments
 - [X] body
 - [X] branch
-- [ ] variable_def
-- [ ] variable_reference
+- [X] variable_def
+- [X] variable_reference
 - [X] variable_assign
 - [X] vartype
-- [ ] core_function
-- [ ] start_func
-- [ ] update_func
+- [X] core_function
+- [X] start_func
+- [X] update_func
 - [X] expression
 - [ ] chained_identifier
 
