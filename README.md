@@ -46,7 +46,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [X] start_func
 - [X] update_func
 - [X] expression
-- [ ] chained_identifier
+- [X] chained_identifier
 
 More abstract todo list:
 

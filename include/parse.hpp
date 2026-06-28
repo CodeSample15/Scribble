@@ -28,7 +28,7 @@ private:
 AST_Nib_Pair_t parse_program(Nibbler nibbler);
 
 //preprocessor
-AST_Nib_Pair_t parse_import_statement(Nibbler nibbler); //TODO
+AST_Nib_Pair_t parse_import_statement(Nibbler nibbler);
 
 //main parse functions
 AST_Nib_Pair_t parse_core_function(Nibbler nibbler);

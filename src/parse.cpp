@@ -26,7 +26,20 @@ AST_Nib_Pair_t parse_program(Nibbler nibbler) {
 
 //PREPROCESSOR
 
-//TODO
+//'use' , chained_identifier , 'as' , chained_identifier
+AST_Nib_Pair_t parse_import_statement(Nibbler nibbler) {
+    AST_Node package_name, target_name;
+
+    nibbler = require(nibbler, TOK_TYPE::USE).first;
+    tie(nibbler, package_name) = parse_chained_identifier(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::AS).first;
+    tie(nibbler, target_name) = parse_chained_identifier(nibbler);
+
+    AST_Node res(NODE_TYPE::IMPORT_STATEMENT);
+    push_children(res, {package_name, target_name});
+
+    return {nibbler, res};
+}
 
 //MAIN STUFF
 
