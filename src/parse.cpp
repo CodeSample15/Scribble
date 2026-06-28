@@ -10,7 +10,7 @@ AST_Nib_Pair_t alt_types(Nibbler nibbler, std::vector<TOK_TYPE> types);
 AST_Nib_Pair_t alt(Nibbler nibbler, std::vector<std::function< AST_Nib_Pair_t(Nibbler) >> funcs);
 AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type);
 AST_Nib_Pair_t opt(Nibbler nibbler, TOK_TYPE type);
-AST_Nib_Pair_t opt(Nibbler nibbler, std::function< Nibbler(Nibbler) > func);
+AST_Nib_Pair_t opt(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > func);
 AST_Vec_Nib_Pair_t many_0(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > func);
 Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func);
 
