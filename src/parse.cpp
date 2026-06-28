@@ -483,27 +483,36 @@ AST_Nib_Pair_t parse_exp_mult(Nibbler nibbler) {
 
 //exp_not , [ '**' , exp_pow ]
 AST_Nib_Pair_t parse_exp_pow(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
+    AST_Node exp_not, pow_node;
+
+    tie(nibbler, exp_not) = parse_exp_not(nibbler);
+    tie(nibbler, pow_node) = opt(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::POW).first;
+        return parse_exp_pow(n);
+    });
+
+    if(pow_node.type != NON) {
+        AST_Node res(NODE_TYPE::EXP_POW);
+        push_children(res, {exp_not, pow_node});
+        return {nibbler, res};
+    }
+
+    return {nibbler, exp_not};
 }
 
 //['!'] , exp_primary
 AST_Nib_Pair_t parse_exp_not(Nibbler nibbler) {
-    AST_Node not_node;
-    bool use_not = false;
-    try {
-        tie(nibbler, not_node) = require(nibbler, TOK_TYPE::NOT);
-        use_not = true;
-    } catch(ScribbleErr&) {}
+    AST_Node not_node, exp_primary;
 
-    AST_Node primary;
-    tie(nibbler, primary) = parse_exp_primary(nibbler);
+    tie(nibbler, not_node) = opt(nibbler, TOK_TYPE::NOT);
+    tie(nibbler, exp_primary) = parse_exp_primary(nibbler);
 
-    if(use_not) {
-        not_node.children.push_back(primary);
+    if(not_node.type != NON) {
+        push_children(not_node, {exp_primary});
         return {nibbler, not_node};
     }
 
-    return {nibbler, primary};
+    return {nibbler, exp_primary};
 }
 
 //variable_reference | literal | '(' , expression , ')' | function_call
@@ -519,6 +528,29 @@ AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
 
                     return (AST_Nib_Pair_t){n, expr};
                 }});
+}
+
+//helper function 
+AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > expression_seg, vector<TOK_TYPE> exp_symbols, NODE_TYPE out_type) {
+    AST_Node first;
+    tie(nibbler, first) = expression_seg(nibbler);
+
+    nibbler = many_0_lambda(nibbler, [&](Nibbler n) {
+        AST_Node symbol;
+        tie(n, symbol) = alt_types(n, exp_symbols);
+
+        AST_Node second;
+        tie(n, second) = expression_seg(n);
+        
+        symbol.children.push_back(first);
+        symbol.children.push_back(second);
+        symbol.type = out_type;
+        first = symbol; //return this symbol to join the two segments
+
+        return n;
+    });
+
+    return {nibbler, first};
 }
 
 //[chained_identifier , '.'] , (function_call | identifier)
@@ -543,29 +575,6 @@ AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
     push_children(res, {children});
 
     return {nibbler, res};
-}
-
-//helper function 
-AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair_t(Nibbler) > expression_seg, vector<TOK_TYPE> exp_symbols, NODE_TYPE out_type) {
-    AST_Node first;
-    tie(nibbler, first) = expression_seg(nibbler);
-
-    nibbler = many_0_lambda(nibbler, [&](Nibbler n) {
-        AST_Node symbol;
-        tie(n, symbol) = alt_types(n, exp_symbols);
-
-        AST_Node second;
-        tie(n, second) = expression_seg(n);
-        
-        symbol.children.push_back(first);
-        symbol.children.push_back(second);
-        symbol.type = out_type;
-        first = symbol; //return this symbol to join the two segments
-
-        return n;
-    });
-
-    return {nibbler, first};
 }
 
 //define helper functions
@@ -614,17 +623,25 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
                 tmp.type = NODE_TYPE::IDENT;
                 break;
 
+            case TOK_TYPE::NOT:
+                tmp.type = NODE_TYPE::EXP_NOT;
+                break;
+            case TOK_TYPE::POW:
+                tmp.type = NODE_TYPE::EXP_POW;
+                break;
+
             case TOK_TYPE::PLUS_EQUALS:
             case TOK_TYPE::MINUS_EQUALS:
             case TOK_TYPE::SLASH_EQUALS:
             case TOK_TYPE::STAR_EQUALS:
             case TOK_TYPE::EQUALS:
                 tmp.type = NODE_TYPE::ASSIGN_OP;
+                break;
 
             default: break;
         }
 
-        tmp.tok = std::make_unique<Token>(next);
+        tmp.tok = std::make_shared<Token>(next);
         return {nibbler, tmp};
     }
 

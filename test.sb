@@ -1,14 +1,1 @@
-:START: {
-    print("This is the start");
-}
-
-:UPDATE: {
-    print("This is the update");
-}
-
-fun test() {
-    num i=5;
-    repeat i {
-        print("Hello!");
-    }
-}
+a

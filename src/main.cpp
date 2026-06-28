@@ -29,7 +29,8 @@ int main(int argc, char** argv) {
 
         cout << "Parsing..." << endl;
         Nibbler nibbler(&tokens);
-        AST_Node AST = parse_program(nibbler).second;
+        AST_Node AST = parse_chained_identifier(nibbler).second;
+        cout << "Done" << endl;
         print_AST(AST);
     }
     catch (ScribbleErr e) {
