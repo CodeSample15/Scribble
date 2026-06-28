@@ -20,9 +20,19 @@ void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon=t
 
 //{import_statement} , {core_function | function_def | variable_def}
 AST_Nib_Pair_t parse_program(Nibbler nibbler) {
-    return {nibbler, NON_NODE};
-}
+    node_vec_t imports, functions;
 
+    tie(nibbler, imports) = many_0(nibbler, parse_import_statement);
+    tie(nibbler, functions) = many_0(nibbler, [&](Nibbler n) {
+        return alt(n, {parse_core_function, parse_function_def, parse_variable_def});
+    });
+
+    AST_Node res(NODE_TYPE::PROGRAM);
+    push_children(res, imports);
+    push_children(res, functions);
+
+    return {nibbler, res};
+}
 
 //PREPROCESSOR
 
