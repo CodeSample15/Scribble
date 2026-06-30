@@ -3,6 +3,10 @@
 
 using namespace std;
 
+void log(string s) {
+    cout << s << endl;
+}
+
 void print_tokens(vector<Token> &tokens) 
 {
     for(Token& tok : tokens) {

@@ -62,7 +62,7 @@ AST_Nib_Pair_t parse_core_function(Nibbler nibbler) {
 AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
     AST_Node tmp;
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
-    tie(nibbler, tmp) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, tmp) = parse_identifier(nibbler);
     if(tmp.tok->lexeme != "START")
         throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "START", ERR_TYPE::EXPECTED};
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
@@ -81,7 +81,7 @@ AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
 AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
     AST_Node tmp;
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
-    tie(nibbler, tmp) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, tmp) = parse_identifier(nibbler);
     if(tmp.tok->lexeme != "UPDATE")
         throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "UPDATE", ERR_TYPE::EXPECTED};
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
@@ -113,10 +113,10 @@ AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
     node_vec_t rest;
 
     tie(nibbler, vartype) = parse_vartype(nibbler);
-    tie(nibbler, first) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, first) = parse_identifier(nibbler);
     tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
         n = require(n, TOK_TYPE::COMMA).first;
-        return require(n, TOK_TYPE::IDENTIFIER);
+        return parse_identifier(n);
     });
     nibbler = require(nibbler, TOK_TYPE::EQUALS).first;
     tie(nibbler, expression) = parse_expression(nibbler);
@@ -144,7 +144,7 @@ AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
 AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler) {
     AST_Node tmp;
     nibbler = require(nibbler, TOK_TYPE::BUILT_IN_VARIABLE_REF).first;
-    tie(nibbler, tmp) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, tmp) = parse_identifier(nibbler);
 
     tmp.type = NODE_TYPE::BUILT_IN_VAR_REFERENCE;
 
@@ -210,7 +210,7 @@ AST_Nib_Pair_t parse_function_def(Nibbler nibbler) {
     tie(nibbler, modifier) = opt(nibbler, parse_function_modifier);
 
     nibbler = require(nibbler, TOK_TYPE::FUNCTION_DEFINE).first;
-    tie(nibbler, identifier) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, identifier) = parse_identifier(nibbler);
     nibbler = require(nibbler, TOK_TYPE::OPEN_PAREN).first;
     tie(nibbler, parameters) = opt(nibbler, parse_parameters);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_PAREN).first;
@@ -231,11 +231,11 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
     node_vec_t rest;
 
     nibbler = require(nibbler, TOK_TYPE::OPEN_BRACKET).first;
-    tie(nibbler, first) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, first) = parse_identifier(nibbler);
 
     tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
         n = require(n, TOK_TYPE::COMMA).first;
-        return require(n, TOK_TYPE::IDENTIFIER);
+        return parse_identifier(n);
     });
 
     AST_Node res(NODE_TYPE::FUNCTION_MODIFIER);
@@ -249,7 +249,7 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
     AST_Node identifier, arguments;
 
-    tie(nibbler, identifier) = parse_chained_identifier(nibbler);
+    tie(nibbler, identifier) = parse_identifier(nibbler);
     nibbler = require(nibbler, TOK_TYPE::OPEN_PAREN).first;
     tie(nibbler, arguments) = opt(nibbler, parse_arguments);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_PAREN).first;
@@ -266,7 +266,7 @@ AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
     node_vec_t params;
 
     tie(nibbler, vartype) = parse_vartype(nibbler);
-    tie(nibbler, identifier) = require(nibbler, TOK_TYPE::IDENTIFIER);
+    tie(nibbler, identifier) = parse_identifier(nibbler);
     params.push_back(vartype);
     params.push_back(identifier);
 
@@ -274,7 +274,7 @@ AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
         n = require(n, TOK_TYPE::COMMA).first;
 
         tie(n, vartype) = parse_vartype(n);
-        tie(n, identifier) = require(n, TOK_TYPE::IDENTIFIER);
+        tie(n, identifier) = parse_identifier(n);
         params.push_back(vartype);
         params.push_back(identifier);
 
@@ -517,8 +517,8 @@ AST_Nib_Pair_t parse_exp_not(Nibbler nibbler) {
 
 //variable_reference | literal | '(' , expression , ')' | function_call
 AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
-    return alt(nibbler, {parse_variable_reference, 
-                parse_function_call,
+    return alt(nibbler, {
+                parse_variable_reference, 
                 [&](Nibbler n){ return alt_types(nibbler, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE}); },
                 [&](Nibbler n){
                     AST_Node expr;
@@ -553,28 +553,32 @@ AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair
     return {nibbler, first};
 }
 
-//[chained_identifier , '.'] , (function_call | identifier)
+//{(function_call | identifier) , '.'} , (function_call | identifier)
 AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
     AST_Node children;
 
-    tie(nibbler, children) = opt(nibbler, [&](Nibbler n){
+    nibbler = many_0_lambda(nibbler, [&](Nibbler n){
         AST_Node tmp;
-        tie(n, tmp) = parse_chained_identifier(n);
+        tie(n, tmp) = alt(n, {parse_function_call, parse_identifier});
         n = require(n, TOK_TYPE::DOT).first;
-        return AST_Nib_Pair_t{n, tmp};
+
+        tmp.children.push_back(children);
+        children = tmp;
+
+        return n;
     });
 
     AST_Node res;
-    tie(nibbler, res) = alt(nibbler, {
-        parse_function_call, 
-        [&](Nibbler n) {
-            return require(n, TOK_TYPE::IDENTIFIER);
-        }
-    });
+    tie(nibbler, res) = alt(nibbler, { parse_function_call, parse_identifier });
 
     push_children(res, {children});
 
     return {nibbler, res};
+}
+
+//just to make things a little easier
+AST_Nib_Pair_t parse_identifier(Nibbler nibbler) {
+    return require(nibbler, TOK_TYPE::IDENTIFIER);
 }
 
 //define helper functions

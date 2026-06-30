@@ -127,7 +127,7 @@ loop                = while_loop | repeat_loop
 while_loop          = 'while' , expression , '{' , body , '}'
 repeat_loop         = 'repeat' , expression , '{' , body , '}'
 
-chained_identifier  = [chained_identifier , '.'] , (function_call | identifier)
+chained_identifier  = {(function_call | identifier) , '.'} , (function_call | identifier)
 
 # mathematical and boolean expressions
 expression          = exp_orl

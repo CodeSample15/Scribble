@@ -82,3 +82,4 @@ AST_Nib_Pair_t parse_exp_not(Nibbler nibbler);
 AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler);
 
 AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler);
+AST_Nib_Pair_t parse_identifier(Nibbler nibbler);
