@@ -131,13 +131,7 @@ AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
 
 //normal_var_ref | built_in_var_ref
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
-    AST_Node tmp;
-    tie(nibbler, tmp) = alt(nibbler, {parse_built_in_var_ref, parse_normal_var_ref});
-
-    AST_Node res(NODE_TYPE::VARIABLE_REFERENCE);
-    push_children(res, {tmp});
-
-    return {nibbler, res};
+    return alt(nibbler, {parse_built_in_var_ref, parse_normal_var_ref});
 }
 
 //'$' , identifier
@@ -158,7 +152,7 @@ AST_Nib_Pair_t parse_normal_var_ref(Nibbler nibbler) {
     tie(nibbler, identifier) = parse_chained_identifier(nibbler);
     tie(nibbler, arr_index) = opt(nibbler, parse_arr_index);
 
-    AST_Node res(NODE_TYPE::ARR_INDEX);
+    AST_Node res(NODE_TYPE::VARIABLE_REFERENCE);
     push_children(res, {identifier, arr_index});
 
     return {nibbler, res};
@@ -193,6 +187,7 @@ AST_Nib_Pair_t parse_arr_index(Nibbler nibbler) {
         n = require(n, TOK_TYPE::COMMA).first;
         return parse_expression(n);
     });
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_BRACKET).first;
 
     AST_Node res(NODE_TYPE::ARR_INDEX);
     push_children(res, {first});
@@ -245,7 +240,7 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//chained_identifier , '(' , [arguments] , ')'
+//identifier , '(' , [arguments] , ')'
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
     AST_Node identifier, arguments;
 
@@ -312,7 +307,7 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
     tie(nibbler, body_children) = many_0(nibbler, [&](Nibbler n) {
         AST_Node res;
 
-        tie(nibbler, res) = alt(nibbler, {parse_variable_def, parse_variable_assign, parse_branch, parse_function_call, parse_loop});
+        tie(nibbler, res) = alt(nibbler, {parse_variable_def, parse_variable_assign, parse_branch, parse_loop, parse_variable_reference});
         nibbler = opt(nibbler, TOK_TYPE::SEMICOLON).first;
 
         return (AST_Nib_Pair_t){n, res};
