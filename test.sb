@@ -1,1 +1,11 @@
-a.b.c(a, b)
+use test.one as test
+
+:START: {
+    int i = 0
+    i++
+}
+
+:UPDATE: {
+    doFunction(i)
+    Object.doOtherFunction();
+}
