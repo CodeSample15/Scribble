@@ -130,58 +130,58 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
         case ',': return TOK_TYPE::COMMA;
         case '%': return TOK_TYPE::PERCENT;
         case '+': 
-            if(fr.has_next("=", lexeme))
+            if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::PLUS_EQUALS;
             else
                 return TOK_TYPE::PLUS;
         case '-':
-            if(fr.has_next("=", lexeme))    
+            if(fr.has_next("=", lexeme, false))    
                 return TOK_TYPE::MINUS_EQUALS;
             else
                 return TOK_TYPE::MINUS;
         case '/':
-            if(fr.has_next("=", lexeme))
+            if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::SLASH_EQUALS;
             else
                 return TOK_TYPE::SLASH;
         case '*':
-            if(fr.has_next("=", lexeme))
+            if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::STAR_EQUALS;
-            else if(fr.has_next("*", lexeme))
+            else if(fr.has_next("*", lexeme, false))
                 return TOK_TYPE::POW;
             else
                 return TOK_TYPE::STAR;
         case '|': 
-            if(fr.has_next("|", lexeme))    
+            if(fr.has_next("|", lexeme, false))    
                 return TOK_TYPE::OR;
             else
                 return TOK_TYPE::BAR;
         case '>': 
-            if(fr.has_next(">", lexeme))
+            if(fr.has_next(">", lexeme, false))
                 return TOK_TYPE::SHIFT_RIGHT;
-            else if(fr.has_next("=", lexeme))
+            else if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::GREATER_THAN_EQUAL;
             else
                 return TOK_TYPE::GREATER_THAN;
         case '<':
-            if(fr.has_next("<", lexeme))
+            if(fr.has_next("<", lexeme, false))
                 return TOK_TYPE::SHIFT_LEFT;
-            else if(fr.has_next("=", lexeme))
+            else if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::LESS_THAN_EQUAL;
             else
                 return TOK_TYPE::LESS_THAN;
         case '=':
-            if(fr.has_next("=", lexeme))
+            if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::CMP_EQUALS;
             else
                 return TOK_TYPE::EQUALS;
         case '&':
-            if(fr.has_next("&", lexeme))
+            if(fr.has_next("&", lexeme, false))
                 return TOK_TYPE::AND;
             else
                 return TOK_TYPE::BIT_AND;
         case '!': 
-            if(fr.has_next("=", lexeme))
+            if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::CMP_NOT_EQUALS;
             else
                 return TOK_TYPE::NOT;

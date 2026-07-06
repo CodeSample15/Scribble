@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     } else {
         //load all tests
         load_lexer_tests(tests);
+        load_parser_tests(tests);
     }
 
     int failed_tests = 0;

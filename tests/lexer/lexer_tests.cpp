@@ -47,60 +47,60 @@ void test_multiple_types(string input, vector<TOK_TYPE> expected) {
 
 void load_lexer_tests(vector<test_t> &tests) {
     //testing literals
-    tests.emplace_back("Identifier 1", [&]{ test_type_lex("x", TOK_TYPE::IDENTIFIER, "x"); });
-    tests.emplace_back("Identifier 2", [&]{ test_type_lex("h3ll0", TOK_TYPE::IDENTIFIER, "h3ll0"); });
-    tests.emplace_back("Identifier 3", [&]{ test_type_lex("_h3ll0", TOK_TYPE::IDENTIFIER, "_h3ll0"); });
-    tests.emplace_back("Identifier 4", [&]{ test_type_lex("x_y", TOK_TYPE::IDENTIFIER, "x_y"); });
+    tests.emplace_back("LEX: Identifier 1", [&]{ test_type_lex("x", TOK_TYPE::IDENTIFIER, "x"); });
+    tests.emplace_back("LEX: Identifier 2", [&]{ test_type_lex("h3ll0", TOK_TYPE::IDENTIFIER, "h3ll0"); });
+    tests.emplace_back("LEX: Identifier 3", [&]{ test_type_lex("_h3ll0", TOK_TYPE::IDENTIFIER, "_h3ll0"); });
+    tests.emplace_back("LEX: Identifier 4", [&]{ test_type_lex("x_y", TOK_TYPE::IDENTIFIER, "x_y"); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
-    tests.emplace_back("Digit 1", [&]{ test_type_lex("23", TOK_TYPE::INT_LITERAL, "23"); });
-    tests.emplace_back("Digit 2", [&]{ test_type_lex("23.3", TOK_TYPE::FLOAT_LITERAL, "23.3"); });
-    tests.emplace_back("Digit 3", [&]{ test_type_lex("23.", TOK_TYPE::FLOAT_LITERAL, "23."); });
-    tests.emplace_back("Digit 4", [&]{ test_type_lex("23.3", TOK_TYPE::FLOAT_LITERAL, "23.3"); });
+    tests.emplace_back("LEX: Digit 1", [&]{ test_type_lex("23", TOK_TYPE::INT_LITERAL, "23"); });
+    tests.emplace_back("LEX: Digit 2", [&]{ test_type_lex("23.3", TOK_TYPE::FLOAT_LITERAL, "23.3"); });
+    tests.emplace_back("LEX: Digit 3", [&]{ test_type_lex("23.", TOK_TYPE::FLOAT_LITERAL, "23."); });
+    tests.emplace_back("LEX: Digit 4", [&]{ test_type_lex("23.3", TOK_TYPE::FLOAT_LITERAL, "23.3"); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
-    tests.emplace_back("String literal", [&]{ test_type_lex("\"Hello World!\"", TOK_TYPE::STRING_LITERAL, "\"Hello World!\""); });
-    tests.emplace_back("String literal - unclosed", [&]{ test_type_lex("\"Hello World!", TOK_TYPE::STRING_LITERAL, "", true); });
-    tests.emplace_back("String literal - newline unclosed", [&]{ test_type_lex("\"Hello Wor\nld!\"", TOK_TYPE::STRING_LITERAL, "", true); });
-    tests.emplace_back("String literal - ' string", [&]{ test_type_lex("'Hello World'", TOK_TYPE::STRING_LITERAL, "'Hello World'"); });
-    tests.emplace_back("String literal - \" ignored in ' string", [&]{ test_type_lex("'Hello \"World\"'", TOK_TYPE::STRING_LITERAL, "'Hello \"World\"'"); });
-    tests.emplace_back("String literal - ' ignored in \" string", [&]{ test_type_lex("\"Hello 'World'\"", TOK_TYPE::STRING_LITERAL, "\"Hello 'World'\""); });
+    tests.emplace_back("LEX: String literal", [&]{ test_type_lex("\"Hello World!\"", TOK_TYPE::STRING_LITERAL, "\"Hello World!\""); });
+    tests.emplace_back("LEX: String literal - unclosed", [&]{ test_type_lex("\"Hello World!", TOK_TYPE::STRING_LITERAL, "", true); });
+    tests.emplace_back("LEX: String literal - newline unclosed", [&]{ test_type_lex("\"Hello Wor\nld!\"", TOK_TYPE::STRING_LITERAL, "", true); });
+    tests.emplace_back("LEX: String literal - ' string", [&]{ test_type_lex("'Hello World'", TOK_TYPE::STRING_LITERAL, "'Hello World'"); });
+    tests.emplace_back("LEX: String literal - \" ignored in ' string", [&]{ test_type_lex("'Hello \"World\"'", TOK_TYPE::STRING_LITERAL, "'Hello \"World\"'"); });
+    tests.emplace_back("LEX: String literal - ' ignored in \" string", [&]{ test_type_lex("\"Hello 'World'\"", TOK_TYPE::STRING_LITERAL, "\"Hello 'World'\""); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
     //testing keywords
-    tests.emplace_back("keyword: use", [&]{ test_type_lex("use", TOK_TYPE::USE, "use"); });
-    tests.emplace_back("keyword: as", [&]{ test_type_lex("as", TOK_TYPE::AS, "as"); });
-    tests.emplace_back("keyword: if", [&]{ test_type_lex("if", TOK_TYPE::IF, "if"); });
-    tests.emplace_back("keyword: if else", [&]{ test_type_lex("if else", TOK_TYPE::IF_ELSE, "if else"); });
-    tests.emplace_back("keyword: else", [&]{ test_type_lex("else", TOK_TYPE::ELSE, "else"); });
-    tests.emplace_back("keyword: while", [&]{ test_type_lex("while", TOK_TYPE::WHILE, "while"); });
-    tests.emplace_back("keyword: repeat", [&]{ test_type_lex("repeat", TOK_TYPE::REPEAT, "repeat"); });
-    tests.emplace_back("keyword: true", [&]{ test_type_lex("true", TOK_TYPE::TRUE, "true"); });
-    tests.emplace_back("keyword: false", [&]{ test_type_lex("false", TOK_TYPE::FALSE, "false"); });
-    tests.emplace_back("keyword: fun", [&]{ test_type_lex("fun", TOK_TYPE::FUNCTION_DEFINE, "fun"); });
-    tests.emplace_back("keyword: num", [&]{ test_type_lex("num", TOK_TYPE::NUMBER_TYPE, "num"); });
-    tests.emplace_back("keyword: float", [&]{ test_type_lex("float", TOK_TYPE::FLOAT_TYPE, "float"); });
-    tests.emplace_back("keyword: string", [&]{ test_type_lex("string", TOK_TYPE::STRING_TYPE, "string"); });
+    tests.emplace_back("LEX: keyword: use", [&]{ test_type_lex("use", TOK_TYPE::USE, "use"); });
+    tests.emplace_back("LEX: keyword: as", [&]{ test_type_lex("as", TOK_TYPE::AS, "as"); });
+    tests.emplace_back("LEX: keyword: if", [&]{ test_type_lex("if", TOK_TYPE::IF, "if"); });
+    tests.emplace_back("LEX: keyword: if else", [&]{ test_type_lex("if else", TOK_TYPE::IF_ELSE, "if else"); });
+    tests.emplace_back("LEX: keyword: else", [&]{ test_type_lex("else", TOK_TYPE::ELSE, "else"); });
+    tests.emplace_back("LEX: keyword: while", [&]{ test_type_lex("while", TOK_TYPE::WHILE, "while"); });
+    tests.emplace_back("LEX: keyword: repeat", [&]{ test_type_lex("repeat", TOK_TYPE::REPEAT, "repeat"); });
+    tests.emplace_back("LEX: keyword: true", [&]{ test_type_lex("true", TOK_TYPE::TRUE, "true"); });
+    tests.emplace_back("LEX: keyword: false", [&]{ test_type_lex("false", TOK_TYPE::FALSE, "false"); });
+    tests.emplace_back("LEX: keyword: fun", [&]{ test_type_lex("fun", TOK_TYPE::FUNCTION_DEFINE, "fun"); });
+    tests.emplace_back("LEX: keyword: num", [&]{ test_type_lex("num", TOK_TYPE::NUMBER_TYPE, "num"); });
+    tests.emplace_back("LEX: keyword: float", [&]{ test_type_lex("float", TOK_TYPE::FLOAT_TYPE, "float"); });
+    tests.emplace_back("LEX: keyword: string", [&]{ test_type_lex("string", TOK_TYPE::STRING_TYPE, "string"); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
     //make sure things like 'if else' only lex as an if-else token if there are no invalid characters following the pattern
-    tests.emplace_back("has_next can't be tricked", [&]{ 
+    tests.emplace_back("LEX: has_next can't be tricked", [&]{ 
         test_multiple_types("if elsee", {
             TOK_TYPE::IF, TOK_TYPE::WHITESPACE, TOK_TYPE::IDENTIFIER
         }); 
     });
 
-    tests.emplace_back("has_next ignores non alpha", [&]{ 
+    tests.emplace_back("LEX: has_next ignores non alpha", [&]{ 
         test_multiple_types("if else{", {
             TOK_TYPE::IF_ELSE, TOK_TYPE::OPEN_CURLY
         }); 
     });
 
-    tests.emplace_back("has_next ignores non alpha 2", [&]{ 
+    tests.emplace_back("LEX: has_next ignores non alpha 2", [&]{ 
         test_multiple_types("if else {", {
             TOK_TYPE::IF_ELSE, TOK_TYPE::WHITESPACE, TOK_TYPE::OPEN_CURLY
         }); 
@@ -109,7 +109,7 @@ void load_lexer_tests(vector<test_t> &tests) {
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
     //testing sequences
-    tests.emplace_back("symbols", [&]{ 
+    tests.emplace_back("LEX: symbols", [&]{ 
         test_multiple_types(".(){}[];,+-/*%|^><>=<=>><<=+=-=/=*=@$:&&||! == !=**&", {
             TOK_TYPE::DOT,
             TOK_TYPE::OPEN_PAREN, TOK_TYPE::CLOSE_PAREN,
@@ -138,34 +138,40 @@ void load_lexer_tests(vector<test_t> &tests) {
         });
     });
 
+    tests.emplace_back("LEX: alpha-symbol combination", [&]{
+        test_multiple_types("a>=b", {
+            TOK_TYPE::IDENTIFIER, TOK_TYPE::GREATER_THAN_EQUAL, TOK_TYPE::IDENTIFIER
+        });
+    });
+
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
     //testing comments
-    tests.emplace_back("comments work in single line", [&]{ 
+    tests.emplace_back("LEX: comments work in single line", [&]{ 
         test_multiple_types("#hi there", {
             TOK_TYPE::COMMENT
         }); 
     });
 
-    tests.emplace_back("comments stop after line", [&]{ 
+    tests.emplace_back("LEX: comments stop after line", [&]{ 
         test_multiple_types("#hi there\nx", {
             TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });
 
-    tests.emplace_back("comments work with tokens on same line", [&]{ 
+    tests.emplace_back("LEX: comments work with tokens on same line", [&]{ 
         test_multiple_types("+#hi there\nx", {
             TOK_TYPE::PLUS, TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });
 
-    tests.emplace_back("comments work on new line", [&]{ 
+    tests.emplace_back("LEX: comments work on new line", [&]{ 
         test_multiple_types("x\n#hi there\nx", {
             TOK_TYPE::IDENTIFIER, TOK_TYPE::WHITESPACE, TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });
 
-    tests.emplace_back("multiple comments", [&]{ 
+    tests.emplace_back("LEX: multiple comments", [&]{ 
         test_multiple_types("#comment 1\n#hi there\nx", {
             TOK_TYPE::COMMENT, TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
