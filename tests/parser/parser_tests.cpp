@@ -52,4 +52,30 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Expression 18", [&]{ test_return_type("a>=b", parse_expression, NODE_TYPE::EXP_CMP); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Loop 1", [&]{ test_return_type("while true {}", parse_loop, NODE_TYPE::LOOP_WHILE); });
+    tests.emplace_back("PARSE: Loop 2", [&]{ test_return_type("repeat 2 {}", parse_loop, NODE_TYPE::LOOP_REPEAT); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Branch 1", [&]{ test_return_type("if true {}", parse_branch, NODE_TYPE::BRANCH); });
+    tests.emplace_back("PARSE: Branch 2", [&]{ test_return_type("if false {} else {}", parse_branch, NODE_TYPE::BRANCH); });
+    tests.emplace_back("PARSE: Branch 3", [&]{ test_return_type("if true {} else if false {}", parse_branch, NODE_TYPE::BRANCH); });
+    tests.emplace_back("PARSE: Branch 4", [&]{ test_return_type("if true {} else if false {} else {}", parse_branch, NODE_TYPE::BRANCH); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Function def 1", [&]{ test_return_type("fun test() {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 2", [&]{ test_return_type("fun test(int one, int two) {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 3", [&]{ test_return_type("[quiet] fun test(float one, int two) {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 4", [&]{ test_return_type("[quiet] fun test() {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Function modifier 1", [&]{ test_return_type("[quiet]", parse_function_modifier, NODE_TYPE::FUNCTION_MODIFIER); });
+    tests.emplace_back("PARSE: Function modifier 2", [&]{ test_return_type("[quiet, test]", parse_function_modifier, NODE_TYPE::FUNCTION_MODIFIER); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Function call 1", [&]{ test_return_type("test()", parse_function_call, NODE_TYPE::FUNCTION_MODIFIER); });
 }

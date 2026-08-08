@@ -233,6 +233,8 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
         return parse_identifier(n);
     });
 
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_BRACKET).first;
+
     AST_Node res(NODE_TYPE::FUNCTION_MODIFIER);
     push_children(res, {first});
     push_children(res, rest);
