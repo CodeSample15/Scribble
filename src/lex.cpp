@@ -232,6 +232,8 @@ TOK_TYPE check_is_keyword(string &lexeme, file_reader::file_reader &fr) {
         return TOK_TYPE::FLOAT_TYPE;
     else if(lexeme == "string")
         return TOK_TYPE::STRING_TYPE;
+    else if(lexeme == "return")
+        return TOK_TYPE::RETURN;
     
     return TOK_TYPE::IDENTIFIER;
 }

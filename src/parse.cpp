@@ -18,7 +18,7 @@ AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair
 
 void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon=true);
 
-//{import_statement} , {core_function | function_def | variable_def}
+// {import_statement} , {core_function | function_def | variable_def}
 AST_Nib_Pair_t parse_program(Nibbler nibbler) {
     node_vec_t imports, functions;
 
@@ -36,7 +36,7 @@ AST_Nib_Pair_t parse_program(Nibbler nibbler) {
 
 //PREPROCESSOR
 
-//'use' , chained_identifier , 'as' , chained_identifier
+// 'use' , chained_identifier , 'as' , chained_identifier
 AST_Nib_Pair_t parse_import_statement(Nibbler nibbler) {
     AST_Node package_name, target_name;
 
@@ -53,12 +53,12 @@ AST_Nib_Pair_t parse_import_statement(Nibbler nibbler) {
 
 //MAIN STUFF
 
-//start_func | update_func
+// start_func | update_func
 AST_Nib_Pair_t parse_core_function(Nibbler nibbler) {
     return alt(nibbler, {parse_start_func, parse_update_func});
 }
 
-//':START:{' , body , '}'
+// ':START:{' , body , '}'
 AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
     AST_Node tmp;
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
@@ -77,7 +77,7 @@ AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//':UPDATE:{' , body , '}'
+// ':UPDATE:{' , body , '}'
 AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
     AST_Node tmp;
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
@@ -98,7 +98,7 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
 
 //parser functions
 
-//('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
+// ('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
     AST_Node vartype;
     tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
@@ -129,12 +129,12 @@ AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//normal_var_ref | built_in_var_ref
+// normal_var_ref | built_in_var_ref
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
     return alt(nibbler, {parse_built_in_var_ref, parse_normal_var_ref});
 }
 
-//'$' , identifier
+// '$' , identifier
 AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler) {
     AST_Node tmp;
     nibbler = require(nibbler, TOK_TYPE::BUILT_IN_VARIABLE_REF).first;
@@ -145,7 +145,7 @@ AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler) {
     return {nibbler, tmp};
 }
 
-//chained_identifier , [arr_index]
+// chained_identifier , [arr_index]
 AST_Nib_Pair_t parse_normal_var_ref(Nibbler nibbler) {
     AST_Node identifier, arr_index;
     
@@ -158,7 +158,7 @@ AST_Nib_Pair_t parse_normal_var_ref(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//variable_reference , ASSIGN_OP , expression
+// variable_reference , ASSIGN_OP , expression
 AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler) {
     AST_Node var_ref, assign_op, expression;
 
@@ -176,7 +176,7 @@ AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//'[' , expression , {',' expression} , ']'
+// '[' , expression , {',' expression} , ']'
 AST_Nib_Pair_t parse_arr_index(Nibbler nibbler) {
     AST_Node first;
     node_vec_t rest;
@@ -198,7 +198,7 @@ AST_Nib_Pair_t parse_arr_index(Nibbler nibbler) {
 
 //FUNCTIONS
 
-//[function_modifier] , 'fun' , identifier , '(' , [parameters] , ')' , '{' , body , '}'
+// [function_modifier] , 'fun' , identifier , '(' , [parameters] , ')' , '{' , body , '}'
 AST_Nib_Pair_t parse_function_def(Nibbler nibbler) {
     AST_Node modifier, identifier, parameters, body;
 
@@ -220,7 +220,7 @@ AST_Nib_Pair_t parse_function_def(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//'[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
+// '[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
 AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
     AST_Node first;
     node_vec_t rest;
@@ -242,7 +242,7 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//identifier , '(' , [arguments] , ')'
+// identifier , '(' , [arguments] , ')'
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
     AST_Node identifier, arguments;
 
@@ -257,7 +257,7 @@ AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//VARTYPE , identifier , {',' , VARTYPE , identifier}
+// VARTYPE , identifier , {',' , VARTYPE , identifier}
 AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
     AST_Node vartype, identifier;
     node_vec_t params;
@@ -284,7 +284,7 @@ AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-//expression , { ',' , expression }
+// expression , { ',' , expression }
 AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
     AST_Node first;
     node_vec_t rest;
@@ -302,14 +302,33 @@ AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// { (variable_def | variable_assign | branch | function_call | loop) , [';'] }
+// 'return' , expression
+AST_Nib_Pair_t parse_return_statement(Nibbler nibbler) {
+    AST_Node returnExpr;
+
+    nibbler = require(nibbler, TOK_TYPE::RETURN).first;
+    tie(nibbler, returnExpr) = parse_expression(nibbler);
+
+    AST_Node res(NODE_TYPE::RETURN_STATEMENT);
+    push_children(res, {returnExpr});
+
+    return {nibbler, res};
+}
+
+// { (variable_def | variable_assign | branch | function_call | loop | return_statement) , [';'] }
 AST_Nib_Pair_t parse_body(Nibbler nibbler) {
     node_vec_t body_children;
 
     tie(nibbler, body_children) = many_0(nibbler, [&](Nibbler n) {
         AST_Node res;
 
-        tie(nibbler, res) = alt(nibbler, {parse_variable_def, parse_variable_assign, parse_branch, parse_loop, parse_variable_reference});
+        tie(nibbler, res) = alt(nibbler, {
+            parse_variable_def, 
+            parse_variable_assign, 
+            parse_branch, 
+            parse_loop, 
+            parse_variable_reference,
+            parse_return_statement});
         nibbler = opt(nibbler, TOK_TYPE::SEMICOLON).first;
 
         return (AST_Nib_Pair_t){n, res};
@@ -323,7 +342,7 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
 
 //BRANCHES
 
-// branch = branch_if ,  {branch_ifelse} , [branch_else]
+// branch_if ,  {branch_ifelse} , [branch_else]
 AST_Nib_Pair_t parse_branch(Nibbler nibbler) {
     AST_Node ifNode, elseNode;
     node_vec_t ifElseNodes;

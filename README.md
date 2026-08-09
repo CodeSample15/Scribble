@@ -30,7 +30,7 @@ There are countless ways to develop video games and graphical applications. Howe
 ### Parser (version 1):
 
 - [X] Program
-- [ ] import_statement
+- [X] import_statement
 - [X] function_def
 - [X] function_modifier
 - [X] function_call
@@ -85,12 +85,15 @@ function_call       =  chained_identifier , '(' , [arguments] , ')'
 parameters          = VARTYPE , identifier , {',' , VARTYPE , identifier}
 arguments           = expression , {',' , expression}
 
+return_statement    = 'return' , expression
+
 # Function bodies:
 body                = {(variable_def 
                     | variable_assign 
                     | branch 
                     | function_call
-                    | loop) , [';']}
+                    | loop
+                    | return_statement) , [';']}
 
 # variables
 variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , expression]

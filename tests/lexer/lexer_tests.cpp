@@ -84,6 +84,7 @@ void load_lexer_tests(vector<test_t> &tests) {
     tests.emplace_back("LEX: keyword: num", [&]{ test_type_lex("num", TOK_TYPE::NUMBER_TYPE, "num"); });
     tests.emplace_back("LEX: keyword: float", [&]{ test_type_lex("float", TOK_TYPE::FLOAT_TYPE, "float"); });
     tests.emplace_back("LEX: keyword: string", [&]{ test_type_lex("string", TOK_TYPE::STRING_TYPE, "string"); });
+    tests.emplace_back("LEX: keyword: return", [&]{ test_type_lex("return", TOK_TYPE::RETURN, "return"); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 

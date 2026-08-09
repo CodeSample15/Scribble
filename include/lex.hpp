@@ -19,6 +19,8 @@ enum TOK_TYPE {
     TRUE,                           //true
     FALSE,                          //false
 
+    RETURN,                         //return
+
     FUNCTION_DEFINE,                // fun
 
     //built in types

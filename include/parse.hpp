@@ -51,6 +51,7 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler);
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler);
 AST_Nib_Pair_t parse_parameters(Nibbler nibbler);
 AST_Nib_Pair_t parse_arguments(Nibbler nibbler);
+AST_Nib_Pair_t parse_return_statement(Nibbler nibbler);
 
 AST_Nib_Pair_t parse_body(Nibbler nibbler);
 

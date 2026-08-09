@@ -77,5 +77,43 @@ void load_parser_tests(vector<test_t> &tests) {
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
-    tests.emplace_back("PARSE: Function call 1", [&]{ test_return_type("test()", parse_function_call, NODE_TYPE::FUNCTION_MODIFIER); });
+    tests.emplace_back("PARSE: Function call 1", [&]{ test_return_type("test()", parse_function_call, NODE_TYPE::FUNCTION_CALL); });
+    tests.emplace_back("PARSE: Function call 2", [&]{ test_return_type("another_test()", parse_function_call, NODE_TYPE::FUNCTION_CALL); });
+    tests.emplace_back("PARSE: Function call 3", [&]{ test_return_type("test(1, 2, 3)", parse_function_call, NODE_TYPE::FUNCTION_CALL); });
+    tests.emplace_back("PARSE: Function call 4", [&]{ test_return_type("test(1.32, \"hello\")", parse_function_call, NODE_TYPE::FUNCTION_CALL); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+    
+    tests.emplace_back("PARSE: Parameters 1", [&]{ test_return_type("float first", parse_parameters, NODE_TYPE::PARAMETERS); });
+    tests.emplace_back("PARSE: Parameters 2", [&]{ test_return_type("float first, string second", parse_parameters, NODE_TYPE::PARAMETERS); });
+    tests.emplace_back("PARSE: Parameters 3", [&]{ test_return_type("int first, float second", parse_parameters, NODE_TYPE::PARAMETERS); });
+    tests.emplace_back("PARSE: Parameters 4", [&]{ test_return_type("int first, float second, string third", parse_parameters, NODE_TYPE::PARAMETERS); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Arguments 1", [&]{ test_return_type("3", parse_arguments, NODE_TYPE::ARGUMENTS); });
+    tests.emplace_back("PARSE: Arguments 2", [&]{ test_return_type("a", parse_arguments, NODE_TYPE::ARGUMENTS); });
+    tests.emplace_back("PARSE: Arguments 3", [&]{ test_return_type("1, b", parse_arguments, NODE_TYPE::ARGUMENTS); });
+    tests.emplace_back("PARSE: Arguments 4", [&]{ test_return_type("1,b", parse_arguments, NODE_TYPE::ARGUMENTS); });
+    tests.emplace_back("PARSE: Arguments 5", [&]{ test_return_type("1,2,3", parse_arguments, NODE_TYPE::ARGUMENTS); });
+    tests.emplace_back("PARSE: Arguments 6", [&]{ test_return_type("3.23,\"hi\",b", parse_arguments, NODE_TYPE::ARGUMENTS); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Return statement 1", [&]{ test_return_type("return 1", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 2", [&]{ test_return_type("return 1+3", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 3", [&]{ test_return_type("return a", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 4", [&]{ test_return_type("return a+b", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 5", [&]{ test_return_type("return 2.34", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 6", [&]{ test_return_type("return test()+3", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: vartype 1", [&]{ test_return_type("int", parse_vartype, NODE_TYPE::VAR_TYPE); });
+    tests.emplace_back("PARSE: vartype 2", [&]{ test_return_type("float", parse_vartype, NODE_TYPE::VAR_TYPE); });
+    tests.emplace_back("PARSE: vartype 3", [&]{ test_return_type("string", parse_vartype, NODE_TYPE::VAR_TYPE); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: vartype 3", [&]{ test_return_type("string", parse_vartype, NODE_TYPE::VAR_TYPE); });
 }
