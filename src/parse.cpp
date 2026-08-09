@@ -107,6 +107,18 @@ AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
     return {nibbler, vartype};
 }
 
+// '[' , expression, {',' , expression} , ']'
+AST_Nib_Pair_t parse_array_type(Nibbler nibbler) {
+    AST_Node first;
+    node_vec_t rest; 
+
+    nibbler = require(nibbler, TOK_TYPE::OPEN_BRACKET).first;
+    tie(nibbler, first) = parse_expression(nibbler);
+    tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::COMMA)
+    });
+}
+
 // VARTYPE , identifier , {',' , identifier} , ['=' , expression]
 AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
     AST_Node vartype, first, expression;
@@ -118,8 +130,12 @@ AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
         n = require(n, TOK_TYPE::COMMA).first;
         return parse_identifier(n);
     });
-    nibbler = require(nibbler, TOK_TYPE::EQUALS).first;
-    tie(nibbler, expression) = parse_expression(nibbler);
+
+
+    tie(nibbler, expression) = opt(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::EQUALS).first;
+        return parse_expression(n);
+    });
 
     AST_Node res(NODE_TYPE::VARIABLE_DEF);
     push_children(res, {vartype, first});

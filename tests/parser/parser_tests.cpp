@@ -12,7 +12,7 @@ void test_return_type(string input, std::function<AST_Nib_Pair_t(Nibbler)> parse
         tokens = lex(input);
         lex_strip(tokens);
     } catch (ScribbleErr &e) {
-        throw test_fail{"AST type test", "Lex failed with error: " + e.msg};
+        throw test_fail{"AST type test", "Lexer failed with error: " + e.msg};
     }
 
     try {
@@ -21,7 +21,7 @@ void test_return_type(string input, std::function<AST_Nib_Pair_t(Nibbler)> parse
 
         if(res.type != expected_type) throw test_fail{"AST type test", "Incorrect type produced by parser: " + AST_node_type_to_string(res.type)};
     } catch (ScribbleErr &e) {
-        throw test_fail{"AST type test", "Lex failed with error: " + e.msg};
+        throw test_fail{"AST type test", "Parser failed with error: " + e.msg};
     }
 }
 
@@ -115,5 +115,12 @@ void load_parser_tests(vector<test_t> &tests) {
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
-    tests.emplace_back("PARSE: vartype 3", [&]{ test_return_type("string", parse_vartype, NODE_TYPE::VAR_TYPE); });
+    tests.emplace_back("PARSE: Variable def 1", [&]{ test_return_type("int i", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 2", [&]{ test_return_type("float i=2", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 3", [&]{ test_return_type("float b=23.43", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 4", [&]{ test_return_type("string s=\"hi\"", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 5", [&]{ test_return_type("string i", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 6", [&]{ test_return_type("int[4,3] b", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 7", [&]{ test_return_type("int a, b, c, d", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+    tests.emplace_back("PARSE: Variable def 8", [&]{ test_return_type("string a,b,c = \"test\"", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
 }
