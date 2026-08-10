@@ -7,6 +7,8 @@
     Functions which will be used to debug the Scribble interpreter
 */
 
+void log(std::string s);
+
 std::string tok_type_to_string(TOK_TYPE tok);
 std::string AST_node_type_to_string(NODE_TYPE node);
 

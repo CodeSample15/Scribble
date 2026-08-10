@@ -9,8 +9,10 @@
 #include "err.hpp"
 
 //useful types
-#define AST_Nib_Pair_t std::pair<AST_Node, Nibbler>
+#define AST_Nib_Pair_t std::pair<Nibbler, AST_Node>
+#define AST_Vec_Nib_Pair_t std::pair<Nibbler, std::vector<AST_Node>>
 typedef std::vector<Token> tok_vec_t;
+typedef std::vector<AST_Node> node_vec_t;
 
 //helper class to consume tokens. Called nibbler cuz I'm taking small nibbles from the token vector (Similar to how the Rust library 'Nom' works)
 class Nibbler {
@@ -26,7 +28,7 @@ private:
 AST_Nib_Pair_t parse_program(Nibbler nibbler);
 
 //preprocessor
-AST_Nib_Pair_t parse_import_statement(Nibbler nibbler); //TODO
+AST_Nib_Pair_t parse_import_statement(Nibbler nibbler);
 
 //main parse functions
 AST_Nib_Pair_t parse_core_function(Nibbler nibbler);
@@ -37,7 +39,10 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler);
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler);
 AST_Nib_Pair_t parse_variable_def(Nibbler nibbler);
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler);
+AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler);
+AST_Nib_Pair_t parse_normal_var_ref(Nibbler nibbler);
 AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler);
+AST_Nib_Pair_t parse_arr_index(Nibbler nibbler);
 
 //function related
 AST_Nib_Pair_t parse_function_def(Nibbler nibbler);
@@ -45,6 +50,7 @@ AST_Nib_Pair_t parse_function_modifier(Nibbler nibbler);
 AST_Nib_Pair_t parse_function_call(Nibbler nibbler);
 AST_Nib_Pair_t parse_parameters(Nibbler nibbler);
 AST_Nib_Pair_t parse_arguments(Nibbler nibbler);
+AST_Nib_Pair_t parse_return_statement(Nibbler nibbler);
 
 AST_Nib_Pair_t parse_body(Nibbler nibbler);
 
@@ -74,3 +80,6 @@ AST_Nib_Pair_t parse_exp_mult(Nibbler nibbler);
 AST_Nib_Pair_t parse_exp_pow(Nibbler nibbler);
 AST_Nib_Pair_t parse_exp_not(Nibbler nibbler);
 AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler);
+
+AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler);
+AST_Nib_Pair_t parse_identifier(Nibbler nibbler);

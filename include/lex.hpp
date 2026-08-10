@@ -19,6 +19,8 @@ enum TOK_TYPE {
     TRUE,                           //true
     FALSE,                          //false
 
+    RETURN,                         //return
+
     FUNCTION_DEFINE,                // fun
 
     //built in types
@@ -38,6 +40,7 @@ enum TOK_TYPE {
     OPEN_BRACKET, CLOSE_BRACKET,    // []
 
     SEMICOLON,                      // ;
+    DOT,
     COMMA,                          // ,
     PLUS,                           // +
     MINUS,                          // -
@@ -59,9 +62,6 @@ enum TOK_TYPE {
     MINUS_EQUALS,                   // -=
     SLASH_EQUALS,                   // /=
     STAR_EQUALS,                    // *=
-
-    INCR,                           // ++
-    DECR,                           // --
 
     //special characters
     IMAGE_REF,                      // @

@@ -29,12 +29,13 @@ There are countless ways to develop video games and graphical applications. Howe
 
 ### Parser (version 1):
 
-- [ ] Program
-- [ ] import_statement
+- [X] Program
+- [X] import_statement
 - [X] function_def
 - [X] function_modifier
 - [X] function_call
 - [X] parameters
+- [X] arguments
 - [X] body
 - [X] branch
 - [X] variable_def
@@ -45,6 +46,7 @@ There are countless ways to develop video games and graphical applications. Howe
 - [X] start_func
 - [X] update_func
 - [X] expression
+- [X] chained_identifier
 
 More abstract todo list:
 
@@ -63,7 +65,7 @@ More abstract todo list:
 ```EBNF
 program = {import_statement} , {core_function | function_def | variable_def}
 
-import_statement    = 'use' , file_path , 'as' , identifier
+import_statement    = 'use' , chained_identifier , 'as' , chained_identifier
 
 core_function       = start_func | update_func
 start_func          = ':START:{' , body , '}'
@@ -78,40 +80,47 @@ function_def        = [function_modifier] , 'fun' , identifier , '(' , [paramete
 function_modifier   = '[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
 
 # function_call
-function_call       =  identifier , '(' , [arguments] , ')'
+function_call       =  chained_identifier , '(' , [arguments] , ')'
 
 parameters          = VARTYPE , identifier , {',' , VARTYPE , identifier}
 arguments           = expression , {',' , expression}
+
+return_statement    = 'return' , expression
 
 # Function bodies:
 body                = {(variable_def 
                     | variable_assign 
                     | branch 
                     | function_call
-                    | loop) , [';']}
+                    | loop
+                    | return_statement) , [';']}
 
 # variables
 variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , expression]
-variable_assign     = variable_reference , 
-                        INCR_DECR_OP | (ASSIGN_OP , expression)
+variable_assign     = variable_reference , ASSIGN_OP , expression
 
-variable_reference  = ['$'] , identifier , ['[' , expression , {',' expression} ']']
+variable_reference  = normal_var_ref
+                    | built_in_var_ref
+                    
+normal_var_ref      = chained_identifier , [arr_index]
+built_in_var_ref    = '$' , identifier
 
-ASSIGN_OP           = '=' 
-                    | '+=' 
-                    | '-=' 
-                    | '/=' 
+arr_index           = '[' , expression , {',' , expression} , ']'
+
+ASSIGN_OP           = '='
+                    | '+='
+                    | '-='
+                    | '/='
                     | '*='
 INCR_DECR_OP        = '--' | '++'
 
-VARTYPE             = ('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
-ARR_TYPE            = '[' , expression, {',' , expression} , ']'
+VARTYPE             = ('num' | 'float' | 'string' | CLASS_NAME) , [arr_index]
 
 # branches
-branch = branch_if ,  {branch_if_else} , [branch_else]
+branch              = branch_if ,  {branch_if_else} , [branch_else]
 
 branch_if           = 'if' , expression , '{' , body , '}'
-branch_if_else       = 'if else' , expression , '{' , body , '}'
+branch_if_else      = 'if else' , expression , '{' , body , '}'
 branch_else         = 'else' , '{' , body , '}'
 
 # loops
@@ -119,6 +128,8 @@ loop                = while_loop | repeat_loop
 
 while_loop          = 'while' , expression , '{' , body , '}'
 repeat_loop         = 'repeat' , expression , '{' , body , '}'
+
+chained_identifier  = {(function_call | identifier) , '.'} , (function_call | identifier)
 
 # mathematical and boolean expressions
 expression          = exp_orl
@@ -164,6 +175,7 @@ Derived from C, but stripped down a lot
 
 ## Example
 
+<!--> Using Rust as the language type because it has the closest syntax highlighting <-->
 ```rust
 use my_library as lib
 use folder/fancy_graphics as graph

@@ -3,6 +3,10 @@
 
 using namespace std;
 
+void log(string s) {
+    cout << s << endl;
+}
+
 void print_tokens(vector<Token> &tokens) 
 {
     for(Token& tok : tokens) {
@@ -59,8 +63,6 @@ string tok_type_to_string(TOK_TYPE tok) {
         case MINUS_EQUALS: return "minus equals";
         case SLASH_EQUALS: return "slash equals";
         case STAR_EQUALS: return "star equals";
-        case INCR: return "incr";
-        case DECR: return "decr";
         case IMAGE_REF: return "image ref";
         case BUILT_IN_VARIABLE_REF: return "built in variable ref";
         case SPECIAL_FUNCTION_PREFIX: return "special function prefix";
@@ -83,12 +85,15 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
         case CORE_FUNCTION: return "core function";
         case FUNCTION_DEF: return "function def";
         case VARIABLE_REFERENCE: return "variable reference";
+        case BUILT_IN_VAR_REFERENCE: return "built in variable";
+        case NORMAL_VAR_REFERENCE: return "normal variable";
         case VARIABLE_DEF: return "variable def";
         case VARIABLE_ASSIGN: return "variable assign";
+        case ARR_INDEX: return "array index";
         case START_FUNC: return "start func";
         case UPDATE_FUNC: return "update func";
         case VAR_TYPE: return "var type";
-        case ASSIGN: return "assign";
+        case ASSIGN_OP: return "assign operator";
         case BODY: return "body";
         case BRANCH: return "branch";
         case BRANCH_IF: return "if";
@@ -130,8 +135,8 @@ static string get_tab_space(int tab);
 string AST_To_String(AST_Node &root, bool recursive, int layer) {
     string res = get_tab_space(layer) + AST_node_type_to_string(root.type) + ": \n";
     
-    if(root.tok.type != TOK_TYPE::OTHER)
-        res += get_tab_space(layer+1) + token_to_string(root.tok) + "\n";
+    if(root.tok != nullptr && root.tok->type != TOK_TYPE::OTHER)
+        res += get_tab_space(layer+1) + token_to_string(*root.tok) + "\n";
     
     if(recursive && root.children.size() != 0) {
         res += get_tab_space(layer+1) + "Children:\n";
