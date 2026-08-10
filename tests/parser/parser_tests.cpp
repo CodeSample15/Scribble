@@ -123,4 +123,33 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Variable def 6", [&]{ test_return_type("int[4,3] b", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
     tests.emplace_back("PARSE: Variable def 7", [&]{ test_return_type("int a, b, c, d", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
     tests.emplace_back("PARSE: Variable def 8", [&]{ test_return_type("string a,b,c = \"test\"", parse_variable_def, NODE_TYPE::VARIABLE_DEF); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Variable ref 1", [&]{ test_return_type("a", parse_variable_reference, NODE_TYPE::VARIABLE_REFERENCE); });
+    tests.emplace_back("PARSE: Variable ref 2", [&]{ test_return_type("a[1]", parse_variable_reference, NODE_TYPE::VARIABLE_REFERENCE); });
+    tests.emplace_back("PARSE: Variable ref 3", [&]{ test_return_type("b[1,2]", parse_variable_reference, NODE_TYPE::VARIABLE_REFERENCE); });
+    tests.emplace_back("PARSE: Variable ref 4", [&]{ test_return_type("b[12, 43, 23]", parse_variable_reference, NODE_TYPE::VARIABLE_REFERENCE); });
+    tests.emplace_back("PARSE: Variable ref 5", [&]{ test_return_type("a[y, z]", parse_variable_reference, NODE_TYPE::VARIABLE_REFERENCE); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Built-in variable ref 1", [&]{ test_return_type("$test", parse_variable_reference, NODE_TYPE::BUILT_IN_VAR_REFERENCE); });
+    tests.emplace_back("PARSE: Built-in variable ref 2", [&]{ test_return_type("$another_test", parse_variable_reference, NODE_TYPE::BUILT_IN_VAR_REFERENCE); });
+    tests.emplace_back("PARSE: Built-in variable ref 3", [&]{ test_return_type("$test[1,2]", parse_variable_reference, NODE_TYPE::BUILT_IN_VAR_REFERENCE); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: import statement 1", [&]{ test_return_type("use module as test", parse_import_statement, NODE_TYPE::IMPORT_STATEMENT); });
+    tests.emplace_back("PARSE: import statement 2", [&]{ test_return_type("use nested.module as test", parse_import_statement, NODE_TYPE::IMPORT_STATEMENT); });
+    tests.emplace_back("PARSE: import statement 3", [&]{ test_return_type("use really.nested.module as test", parse_import_statement, NODE_TYPE::IMPORT_STATEMENT); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Core START", [&]{ test_return_type(":START: {}", parse_core_function, NODE_TYPE::START_FUNC); });
+    tests.emplace_back("PARSE: Core UPDATE", [&]{ test_return_type(":UPDATE: {}", parse_core_function, NODE_TYPE::UPDATE_FUNC); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Program", [&]{ test_return_type(":START: { int i=0; } :UPDATE: { i++; }", parse_program, NODE_TYPE::PROGRAM); });
 }

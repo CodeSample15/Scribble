@@ -37,7 +37,6 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler);
 
 //variable related
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler);
-AST_Nib_Pair_t parse_array_type(Nibbler nibbler);
 AST_Nib_Pair_t parse_variable_def(Nibbler nibbler);
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler);
 AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler);

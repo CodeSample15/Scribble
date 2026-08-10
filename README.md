@@ -105,7 +105,7 @@ variable_reference  = normal_var_ref
 normal_var_ref      = chained_identifier , [arr_index]
 built_in_var_ref    = '$' , identifier
 
-arr_index           = '[' , expression , {',' expression} , ']'
+arr_index           = '[' , expression , {',' , expression} , ']'
 
 ASSIGN_OP           = '='
                     | '+='
@@ -114,8 +114,7 @@ ASSIGN_OP           = '='
                     | '*='
 INCR_DECR_OP        = '--' | '++'
 
-VARTYPE             = ('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
-ARR_TYPE            = '[' , expression, {',' , expression} , ']'
+VARTYPE             = ('num' | 'float' | 'string' | CLASS_NAME) , [arr_index]
 
 # branches
 branch              = branch_if ,  {branch_if_else} , [branch_else]

@@ -98,25 +98,16 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
 
 //parser functions
 
-// ('num' | 'float' | 'string' | CLASS_NAME) , [ARR_TYPE]
+// ('num' | 'float' | 'string' | CLASS_NAME) , [arr_index]
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
-    AST_Node vartype;
+    AST_Node vartype, index;
     tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
+    tie(nibbler, index) = opt(nibbler, parse_arr_index);
+
     vartype.type = NODE_TYPE::VAR_TYPE;
+    push_children(vartype, {index});
 
     return {nibbler, vartype};
-}
-
-// '[' , expression, {',' , expression} , ']'
-AST_Nib_Pair_t parse_array_type(Nibbler nibbler) {
-    AST_Node first;
-    node_vec_t rest; 
-
-    nibbler = require(nibbler, TOK_TYPE::OPEN_BRACKET).first;
-    tie(nibbler, first) = parse_expression(nibbler);
-    tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
-        n = require(n, TOK_TYPE::COMMA)
-    });
 }
 
 // VARTYPE , identifier , {',' , identifier} , ['=' , expression]
