@@ -16,50 +16,16 @@ There are countless ways to develop video games and graphical applications. Howe
     - Scribble has no way to interface directly with local files, make unsafe system calls, or anything similar. This means that users can execute other's Scribble files immediately after downloading without fear of accidentally running malware.
 - Fun and education
     - Modern day programming education is very focused around using LLMs to write code. In my opinion, this takes the joy out of learning to code, especially for new developers. This language aims to provide a simple syntax that is both fun to use and teaches new developers how to think like a programmer, without having to rely on prompting.
-    - The idea isn't to develop the next hackathon-winning app with this language, but instead just focus on making something cool for others to enjoy, while learning to think programmatically along the way.
+    - The idea isn't to develop the next hackathon-winning app with this language, but instead just focus on making something cool for others to enjoy, while solving problems along the way.
 
 ## Progress
 
-### Lexer (version 1):
-
-- [X] Lex all tokens needed for parser
-- [X] Comprehensive error reporting
-- [X] Tests
-- [ ] Edge case handling (invalid float literals?)
-
-### Parser (version 1):
-
-- [X] Program
-- [X] import_statement
-- [X] function_def
-- [X] function_modifier
-- [X] function_call
-- [X] parameters
-- [X] arguments
-- [X] body
-- [X] branch
-- [X] variable_def
-- [X] variable_reference
-- [X] variable_assign
-- [X] vartype
-- [X] core_function
-- [X] start_func
-- [X] update_func
-- [X] expression
-- [X] chained_identifier
-
-More abstract todo list:
-
-- [X] General parser architecture
-- [X] Node type enum
-- [X] Fully functional AST setup
-- [ ] Fix error reporting to be more useful (say what segment was expected, not just what token)
-- [ ] Parser tests
-- [ ] AST tests
-
-### Interpreter:
-
-*Not started*
+[X] Lexer
+ - [X] Unit tests
+[X] Parser
+ - [X] Unit tests
+[] Interpreter
+ - [ ] Unit tests
 
 ## Language Grammar
 ```EBNF

@@ -4,6 +4,7 @@
 
 #include "lex.hpp"
 #include "parse.hpp"
+#include "interpreter.hpp"
 #include "err.hpp"
 #include "debug.hpp"
 
@@ -29,9 +30,15 @@ int main(int argc, char** argv) {
 
         cout << "Parsing..." << endl;
         Nibbler nibbler(&tokens);
-        AST_Node AST = parse_expression(nibbler).second;
+        AST_Node AST = parse_program(nibbler).second;
         cout << "Done" << endl;
         print_AST(AST);
+
+        cout << endl;
+        cout << endl;
+
+        cout << "Running program" << endl;
+        Interpreter::eval(AST);
     }
     catch (ScribbleErr e) {
         PrintSErrMessage(e, input);
