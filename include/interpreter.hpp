@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include "utils/AST.hpp"
 
 #define SymbolTableValues std::vector< std::pair< std::string, std::shared_ptr< Interpreter::AnyValue > > >
@@ -26,7 +27,7 @@ namespace Interpreter {
     struct SharedSymbol {
         std::string                 name;
         std::shared_ptr<AnyValue>   value;
-        std::mutex                  mut;
+        std::mutex                  symbol_mutex;
     };
 
     struct SymbolTable {
@@ -35,5 +36,10 @@ namespace Interpreter {
     };
 
     extern std::vector<SharedSymbol> GlobalValues;
+
+    extern std::shared_ptr<AST_Node> StartFunction;
+    extern std::shared_ptr<AST_Node> UpdateFunction;
+    extern std::unordered_map<std::string, std::shared_ptr<AST_Node>> functions;
+
     AnyValue eval(AST_Node root, std::shared_ptr<SymbolTable> memTable=nullptr);
 }
