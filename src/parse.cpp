@@ -329,14 +329,14 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
     tie(nibbler, body_children) = many_0(nibbler, [&](Nibbler n) {
         AST_Node res;
 
-        tie(nibbler, res) = alt(nibbler, {
+        tie(n, res) = alt(n, {
             parse_variable_def, 
             parse_variable_assign, 
             parse_branch, 
             parse_loop, 
             parse_variable_reference,
             parse_return_statement});
-        nibbler = opt(nibbler, TOK_TYPE::SEMICOLON).first;
+        n = opt(n, TOK_TYPE::SEMICOLON).first;
 
         return (AST_Nib_Pair_t){n, res};
     });

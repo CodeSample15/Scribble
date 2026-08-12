@@ -5,8 +5,8 @@ using namespace Interpreter;
 
 std::vector<SharedSymbol> GlobalValues;
 
-std::shared_ptr<AST_Node> StartFunction = nullptr;
-std::shared_ptr<AST_Node> UpdateFunction = nullptr;
+std::shared_ptr<AST_Node> Interpreter::StartFunction = nullptr;
+std::shared_ptr<AST_Node> Interpreter::UpdateFunction = nullptr;
 std::unordered_map<std::string, std::shared_ptr<AST_Node>> functions;
 
 // Creating child scopes
@@ -17,7 +17,7 @@ size_t getLine(std::shared_ptr<Token> tok);
 size_t getCol(std::shared_ptr<Token> tok); 
 
 AnyValue Interpreter::eval(std::shared_ptr<AST_Node> root, std::shared_ptr<AnyValue> returnContext, std::shared_ptr<SymbolTable> memTable) {
-    if(returnContext->type != EVAL_RES_TYPE::None) return *returnContext;
+    if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None) return *returnContext;
 
     switch(root->type) {
         case NODE_TYPE::PROGRAM: {
@@ -42,14 +42,18 @@ AnyValue Interpreter::eval(std::shared_ptr<AST_Node> root, std::shared_ptr<AnyVa
         case NODE_TYPE::IMPORT_STATEMENT:
             break;
 
-        case NODE_TYPE::VARIABLE_DEF:
+        case NODE_TYPE::VARIABLE_DEF: {
+
+
             if(returnContext == nullptr) {
-                // Store in global memory
+                // Store in global memory (we're not in a function)
+
             }
             else {
                 // Store in memory table
             }
             break;
+        }
 
         case NODE_TYPE::VARIABLE_ASSIGN:
             break;
@@ -57,7 +61,12 @@ AnyValue Interpreter::eval(std::shared_ptr<AST_Node> root, std::shared_ptr<AnyVa
         case NODE_TYPE::VARIABLE_REFERENCE:
             break;
 
-        case NODE_TYPE::CORE_FUNCTION:
+        case NODE_TYPE::START_FUNC:
+            StartFunction = root;
+            break;
+
+        case NODE_TYPE::UPDATE_FUNC:
+            UpdateFunction = root;
             break;
 
         case NODE_TYPE::BODY:
