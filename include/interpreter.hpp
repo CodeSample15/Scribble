@@ -9,7 +9,7 @@
 #define SymbolTableValues std::vector< std::pair< std::string, std::shared_ptr< Interpreter::AnyValue > > >
 
 namespace Interpreter {
-    enum EvalResultType {
+    enum EVAL_RES_TYPE {
         None,
         Num,
         Float,
@@ -18,7 +18,7 @@ namespace Interpreter {
     };
 
     struct AnyValue {
-        EvalResultType          type;
+        EVAL_RES_TYPE           type;
         std::vector<int>        dimension;
 
         std::shared_ptr<void>   value;
@@ -41,5 +41,5 @@ namespace Interpreter {
     extern std::shared_ptr<AST_Node> UpdateFunction;
     extern std::unordered_map<std::string, std::shared_ptr<AST_Node>> functions;
 
-    AnyValue eval(AST_Node root, std::shared_ptr<SymbolTable> memTable=nullptr);
+    AnyValue eval(std::shared_ptr<AST_Node> root, std::shared_ptr<SymbolTable> memTable=nullptr, std::shared_ptr<AnyValue> returnContext);
 }

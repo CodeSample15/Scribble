@@ -34,7 +34,7 @@ enum NODE_TYPE {
 struct AST_Node {
     NODE_TYPE type;
     std::shared_ptr<Token> tok;
-    std::vector<AST_Node> children;
+    std::vector<std::shared_ptr< AST_Node >> children;
 
     AST_Node() : tok(nullptr) {
         this->type=NON;

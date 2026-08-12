@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
         cout << endl;
 
         cout << "Running program" << endl;
-        Interpreter::eval(AST);
+        Interpreter::eval(make_shared<AST_Node>(AST));
     }
     catch (ScribbleErr e) {
         PrintSErrMessage(e, input);

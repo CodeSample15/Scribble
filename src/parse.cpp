@@ -565,8 +565,8 @@ AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair
         AST_Node second;
         tie(n, second) = expression_seg(n);
         
-        symbol.children.push_back(first);
-        symbol.children.push_back(second);
+        symbol.children.push_back(make_shared<AST_Node>(first));
+        symbol.children.push_back(make_shared<AST_Node>(second));
         symbol.type = out_type;
         first = symbol; //return this symbol to join the two segments
 
@@ -585,7 +585,7 @@ AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
         tie(n, tmp) = alt(n, {parse_function_call, parse_identifier});
         n = require(n, TOK_TYPE::DOT).first;
 
-        tmp.children.push_back(children);
+        tmp.children.push_back(make_shared<AST_Node>(children));
         children = tmp;
 
         return n;
@@ -719,7 +719,7 @@ Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func) {
 void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon) {
     for(AST_Node &c : children) {
         if(ignoreNon && c.type == NODE_TYPE::NON) continue;
-        parent.children.push_back(c);
+        parent.children.push_back(make_shared<AST_Node>(c));
     }
 }
 

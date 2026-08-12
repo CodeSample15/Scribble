@@ -141,7 +141,7 @@ string AST_To_String(AST_Node &root, bool recursive, int layer) {
     if(recursive && root.children.size() != 0) {
         res += get_tab_space(layer+1) + "Children:\n";
         for(auto& i : root.children)
-            res += AST_To_String(i, true, layer+2) + "\n";
+            res += AST_To_String(*i, true, layer+2) + "\n";
     }
 
     return res;

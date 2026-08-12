@@ -16,6 +16,8 @@ typedef enum {
     EOT, // end of tokens
 
     // runtime errors
+    MISSING_REQUIRED,   // missing a required function
+    INVALID_FUN_CALL,   // invalid function call
 } ERR_TYPE;
 
 /*
