@@ -106,6 +106,7 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Return statement 4", [&]{ test_return_type("return a+b", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
     tests.emplace_back("PARSE: Return statement 5", [&]{ test_return_type("return 2.34", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
     tests.emplace_back("PARSE: Return statement 6", [&]{ test_return_type("return test()+3", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 7", [&]{ test_return_type("return", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 

@@ -13,7 +13,7 @@ std::unordered_map<std::string, std::shared_ptr<AST_Node>> functions;
 size_t getLine(std::shared_ptr<Token> tok);
 size_t getCol(std::shared_ptr<Token> tok); 
 
-AnyValue Interpreter::eval(std::shared_ptr<AST_Node> root, std::shared_ptr<SymbolTable> memTable) {
+AnyValue Interpreter::eval(std::shared_ptr<AST_Node> root, std::shared_ptr<SymbolTable> memTable, std::shared_ptr<AnyValue> returnContext) {
     switch(root->type) {
         case NODE_TYPE::PROGRAM:
             for(auto& node : root.get()->children)

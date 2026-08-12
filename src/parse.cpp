@@ -309,12 +309,12 @@ AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// 'return' , expression
+// 'return' , [expression]
 AST_Nib_Pair_t parse_return_statement(Nibbler nibbler) {
     AST_Node returnExpr;
 
     nibbler = require(nibbler, TOK_TYPE::RETURN).first;
-    tie(nibbler, returnExpr) = parse_expression(nibbler);
+    tie(nibbler, returnExpr) = opt(nibbler, parse_expression);
 
     AST_Node res(NODE_TYPE::RETURN_STATEMENT);
     push_children(res, {returnExpr});

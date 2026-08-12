@@ -51,7 +51,7 @@ function_call       =  chained_identifier , '(' , [arguments] , ')'
 parameters          = VARTYPE , identifier , {',' , VARTYPE , identifier}
 arguments           = expression , {',' , expression}
 
-return_statement    = 'return' , expression
+return_statement    = 'return' , [expression]
 
 # Function bodies:
 body                = {(variable_def 
