@@ -41,5 +41,5 @@ namespace Interpreter {
     extern std::shared_ptr<AST_Node> UpdateFunction;
     extern std::unordered_map<std::string, std::shared_ptr<AST_Node>> functions;
 
-    AnyValue eval(std::shared_ptr<AST_Node> root, std::shared_ptr<SymbolTable> memTable=nullptr, std::shared_ptr<AnyValue> returnContext=nullptr);
+    AnyValue eval(std::shared_ptr<AST_Node> root, std::shared_ptr<AnyValue> returnContext, std::shared_ptr<SymbolTable> memTable=nullptr);
 }
