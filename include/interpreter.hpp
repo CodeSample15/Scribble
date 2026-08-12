@@ -9,7 +9,7 @@
 #define SymbolTableValues std::vector< std::pair< std::string, std::shared_ptr< Interpreter::AnyValue > > >
 
 namespace Interpreter {
-    enum EVAL_RES_TYPE {
+    enum EVAL_RES_TYPE : uint8_t {
         None,
         Num,
         Float,
@@ -18,10 +18,9 @@ namespace Interpreter {
     };
 
     struct AnyValue {
-        EVAL_RES_TYPE           type;
         std::vector<int>        dimension;
-
         std::shared_ptr<void>   value;
+        EVAL_RES_TYPE           type;
     };
 
     struct SharedSymbol {
