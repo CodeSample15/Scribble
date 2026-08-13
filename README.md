@@ -80,7 +80,7 @@ ASSIGN_OP           = '='
                     | '*='
 INCR_DECR_OP        = '--' | '++'
 
-VARTYPE             = ('num' | 'float' | 'string' | CLASS_NAME) , [arr_index]
+VARTYPE             = ('num' | 'float' | 'bool' | 'string' | CLASS_NAME) , [arr_index]
 
 # branches
 branch              = branch_if ,  {branch_if_else} , [branch_else]

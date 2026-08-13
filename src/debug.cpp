@@ -32,6 +32,7 @@ string tok_type_to_string(TOK_TYPE tok) {
         case FUNCTION_DEFINE: return "function define";
         case NUMBER_TYPE: return "num type";
         case FLOAT_TYPE: return "float type";
+        case BOOL_TYPE: return "Boolean type";
         case STRING_TYPE: return "string type";
         case IDENTIFIER: return "identifier";
         case STRING_LITERAL: return "string literal";

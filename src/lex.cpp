@@ -230,6 +230,8 @@ TOK_TYPE check_is_keyword(string &lexeme, file_reader::file_reader &fr) {
         return TOK_TYPE::NUMBER_TYPE;
     else if(lexeme == "float")
         return TOK_TYPE::FLOAT_TYPE;
+    else if(lexeme == "bool")
+        return TOK_TYPE::BOOL_TYPE;
     else if(lexeme == "string")
         return TOK_TYPE::STRING_TYPE;
     else if(lexeme == "return")

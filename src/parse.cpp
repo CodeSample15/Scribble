@@ -98,10 +98,10 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
 
 //parser functions
 
-// ('num' | 'float' | 'string' | CLASS_NAME) , [arr_index]
+// ('num' | 'float' | 'bool' | 'string' | CLASS_NAME) , [arr_index]
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
     AST_Node vartype, index;
-    tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
+    tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::BOOL_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
     tie(nibbler, index) = opt(nibbler, parse_arr_index);
 
     vartype.type = NODE_TYPE::VAR_TYPE;

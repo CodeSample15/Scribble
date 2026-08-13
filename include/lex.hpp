@@ -26,6 +26,7 @@ enum TOK_TYPE {
     //built in types
     NUMBER_TYPE,                    // num
     FLOAT_TYPE,                     // float
+    BOOL_TYPE,                      // bool
     STRING_TYPE,                    // string
 
     //values

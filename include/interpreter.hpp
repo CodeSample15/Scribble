@@ -13,6 +13,7 @@ namespace Interpreter {
         None,
         Num,
         Float,
+        Bool,
         String,
         Object
     };
