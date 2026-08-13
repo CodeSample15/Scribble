@@ -32,6 +32,7 @@ string errmsg(ERR_TYPE t) {
             return "Unrecognized pattern in source code";
         case ERR_TYPE::EXPECTED:
             return "Expected:";
+        //TODO: add new error messages
         default:
             return "Unimplemented Error Message";
     }

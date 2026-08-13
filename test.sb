@@ -1,5 +1,5 @@
 :START: {
-    int i
+    num i = "3"
 }
 
 :UPDATE: {

@@ -18,6 +18,9 @@ typedef enum {
     // runtime errors
     MISSING_REQUIRED,   // missing a required function
     INVALID_FUN_CALL,   // invalid function call
+    UNKNOWN_DTYPE,      // unknown dtype referenced
+    INVALID_ASSIGNMENT, // invalid value assignment
+    INVALID_SYMBOL,     // symbol not found
 } ERR_TYPE;
 
 /*

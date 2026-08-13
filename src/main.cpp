@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
         cout << endl;
 
         cout << "Running program" << endl;
+        Interpreter::InitRuntime(); // MUST be ran before first eval call
         Interpreter::eval(make_shared<AST_Node>(AST), nullptr);
     }
     catch (ScribbleErr e) {
