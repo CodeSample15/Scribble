@@ -541,8 +541,14 @@ AST_Nib_Pair_t parse_exp_not(Nibbler nibbler) {
 //variable_reference | literal | '(' , expression , ')' | function_call
 AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
     return alt(nibbler, {
+                [&](Nibbler n){
+                    AST_Node primary;
+                    tie(n, primary) = alt_types(n, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE});
+                    primary.type = NODE_TYPE::EXP_PRIMARY;
+                    
+                    return (AST_Nib_Pair_t){n, primary}; 
+                },
                 parse_variable_reference, 
-                [&](Nibbler n){ return alt_types(nibbler, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE}); },
                 [&](Nibbler n){
                     AST_Node expr;
                     n = require(n, TOK_TYPE::OPEN_PAREN).first;
@@ -643,6 +649,8 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
             case TOK_TYPE::STRING_LITERAL:
             case TOK_TYPE::INT_LITERAL:
             case TOK_TYPE::FLOAT_LITERAL:
+            case TOK_TYPE::TRUE:
+            case TOK_TYPE::FALSE:
                 tmp.type = NODE_TYPE::EXP_PRIMARY;
                 break;
 

@@ -14,7 +14,9 @@ unordered_map<string, EVAL_RES_TYPE> Interpreter::ValidDTypes;
 // Helper functions
 shared_ptr<SymbolTable> newScopeWithParent(shared_ptr<SymbolTable> parent);
 EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node);
-AnyValue defaultValueFor(EVAL_RES_TYPE);
+
+void checkDtype(AnyValue val, EVAL_RES_TYPE dtype, shared_ptr<AST_Node> node);
+shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type);
 
@@ -39,6 +41,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
     switch(root->type) {
         case NODE_TYPE::PROGRAM: {
+            InitRuntime();
+
             for(auto& node : root.get()->children)
                 eval(node, nullptr, memTable);
             
@@ -65,19 +69,22 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             vector<string> idents;
             auto val = make_shared<AnyValue>();
 
+            // get the datatype from the first child
+            EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
+
+            // get every new variable name from the second child onwards
             size_t i=1;
             for(; i<root->children.size() && root->children[i]->type == NODE_TYPE::IDENT; i++) {
                 idents.push_back(root->children[1]->tok->lexeme);
             }
 
-            EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
+            // get the assigned value or the default vale for the new variable
             if(i < root->children.size()) {
                 *val = eval(root->children[i], returnContext, memTable);
-
-                if(val->type != dtype) 
-                    throwScribbleError(root->children[i], "Invalid value for datatype", ERR_TYPE::INVALID_ASSIGNMENT);
-            } else {
-                *val = defaultValueFor(dtype);
+                checkDtype(*val, dtype, root->children[i]);
+            } 
+            else {
+                *val = AnyValue{{1}, defaultValueFor(dtype), dtype};
             }
 
             if(returnContext == nullptr) {
@@ -128,7 +135,6 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::RETURN_STATEMENT:
-            
             break;
 
         case NODE_TYPE::EXP_ORL:
@@ -168,6 +174,21 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::EXP_PRIMARY:
+            //convert node to AnyValue
+            switch(root->tok->type) {
+                case TOK_TYPE::INT_LITERAL:
+                    return AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(stoi(root->tok->lexeme)), EVAL_RES_TYPE::Num};
+                case TOK_TYPE::FLOAT_LITERAL:
+                    return AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(stof(root->tok->lexeme)), EVAL_RES_TYPE::Float};
+                case TOK_TYPE::TRUE:
+                    return AnyValue{{1}, make_shared<bool>(true), EVAL_RES_TYPE::Bool};
+                case TOK_TYPE::FALSE:
+                    return AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool};
+                case TOK_TYPE::STRING_LITERAL:
+                    return AnyValue{{1}, make_shared<string>(root->tok->lexeme), EVAL_RES_TYPE::String};
+                default:
+                    throwScribbleError(root, "Expression primary not recognized", ERR_TYPE::UNEXPECTED_TOKEN);
+            }
             break;
 
         default:
@@ -197,8 +218,31 @@ EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node) {
     return it->second;
 }
 
-AnyValue defaultValueFor(EVAL_RES_TYPE resType) {
-    return AnyValue{};
+
+void checkDtype(AnyValue val, EVAL_RES_TYPE dtype, shared_ptr<AST_Node> node) {
+    if(val.type != dtype) 
+        throwScribbleError(node, "Invalid value for datatype", ERR_TYPE::INVALID_ASSIGNMENT);
+}
+
+shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
+    switch(resType) {
+        case EVAL_RES_TYPE::None:
+            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
+        case EVAL_RES_TYPE::Num:
+            return make_shared<SCRIBBLE_NUM_REP>(0);
+        case EVAL_RES_TYPE::Float:
+            return make_shared<SCRIBBLE_FLOAT_REP>(0);
+        case EVAL_RES_TYPE::Bool:
+            return make_shared<bool>(false);
+        case EVAL_RES_TYPE::String:
+            return make_shared<string>("");
+        case EVAL_RES_TYPE::Object:
+            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
+        default:
+            break; // custom values 
+    }
+
+    return make_shared<int>(0);
 }
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type) {

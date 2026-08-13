@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include "utils/AST.hpp"
 
+#define SCRIBBLE_NUM_REP int32_t
+#define SCRIBBLE_FLOAT_REP double
+
 #define SymbolTableValues std::vector< std::pair< std::string, std::shared_ptr< Interpreter::AnyValue > > >
 
 namespace Interpreter {

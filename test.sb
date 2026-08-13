@@ -1,5 +1,5 @@
 :START: {
-    num i = "3"
+    num[2, 3] i = true
 }
 
 :UPDATE: {
