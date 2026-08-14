@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "interpreter.hpp"
 #include "debug.hpp"
 
@@ -15,8 +17,11 @@ unordered_map<string, EVAL_RES_TYPE> Interpreter::ValidDTypes;
 shared_ptr<SymbolTable> newScopeWithParent(shared_ptr<SymbolTable> parent);
 EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node);
 
-void checkDtype(AnyValue val, EVAL_RES_TYPE dtype, shared_ptr<AST_Node> node);
+void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr<AST_Node> &node);
+void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
+pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
+double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type);
 
@@ -81,7 +86,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // get the assigned value or the default vale for the new variable
             if(i < root->children.size()) {
                 *val = eval(root->children[i], returnContext, memTable);
-                checkDtype(*val, dtype, root->children[i]);
+                checkForAllowedDtype(*val, {dtype}, root->children[i]);
             } 
             else {
                 *val = AnyValue{{1}, defaultValueFor(dtype), dtype};
@@ -164,14 +169,32 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_ADD:
             break;
 
-        case NODE_TYPE::EXP_MULT:
-            break;
+        case NODE_TYPE::EXP_MULT: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            double res = extractNumValue(one, root->children[0]) * extractNumValue(two, root->children[1]);
+            auto casted = castNumValue(res, one.type, two.type);
 
-        case NODE_TYPE::EXP_POW:
-            break;
+            return AnyValue{{1}, casted.first, casted.second};
+        }
 
-        case NODE_TYPE::EXP_NOT:
-            break;
+        case NODE_TYPE::EXP_POW: {
+            AnyValue baseVal = eval(root->children[0], returnContext, memTable);
+            AnyValue powVal = eval(root->children[1], returnContext, memTable);
+            double res = pow(
+                extractNumValue(baseVal, root->children[0]),
+                extractNumValue(powVal, root->children[1])
+            );
+            auto casted = castNumValue(res, baseVal.type, powVal.type);
+
+            return AnyValue{{1}, casted.first, casted.second};
+        }
+
+        case NODE_TYPE::EXP_NOT: {
+            AnyValue val = eval(root->children[0], returnContext, memTable);
+            double extracted = extractNumValue(val, root->children[0]);
+            return AnyValue{{1}, make_shared<bool>(!extracted), EVAL_RES_TYPE::Bool};
+        }
 
         case NODE_TYPE::EXP_PRIMARY:
             //convert node to AnyValue
@@ -219,9 +242,17 @@ EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node) {
 }
 
 
-void checkDtype(AnyValue val, EVAL_RES_TYPE dtype, shared_ptr<AST_Node> node) {
-    if(val.type != dtype) 
-        throwScribbleError(node, "Invalid value for datatype", ERR_TYPE::INVALID_ASSIGNMENT);
+void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr<AST_Node> &node) {
+    for(EVAL_RES_TYPE &t : dtypes) {
+        if(val.type == t) return;
+    }
+
+    throwScribbleError(node, "Invalid value for datatype", ERR_TYPE::INVALID_ASSIGNMENT);
+}
+
+void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node) {
+    if(val.dimension.size() != 1 || val.dimension[0] != 1)
+        throwScribbleError(node, "Value is array", ERR_TYPE::BAD_TYPE);
 }
 
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
@@ -239,10 +270,37 @@ shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
         case EVAL_RES_TYPE::Object:
             return make_shared<int>(0); // Trying to avoid the existence of nullptrs
         default:
-            break; // custom values 
+            break; // custom values
     }
 
     return make_shared<int>(0);
+}
+
+pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2) {
+    if(type1 == type2 && type1 == EVAL_RES_TYPE::Num)
+        return {make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)val), EVAL_RES_TYPE::Num};
+    return {make_shared<SCRIBBLE_FLOAT_REP>((SCRIBBLE_FLOAT_REP)val), EVAL_RES_TYPE::Float};
+}
+
+double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
+    switch(val.type) {
+        case EVAL_RES_TYPE::None:
+            throwScribbleError(node, "None", ERR_TYPE::BAD_TYPE);
+        case EVAL_RES_TYPE::Num:
+            return *(SCRIBBLE_NUM_REP*)val.value.get();
+        case EVAL_RES_TYPE::Float:
+            return *(SCRIBBLE_FLOAT_REP*)val.value.get();
+        case EVAL_RES_TYPE::Bool:
+            return *(bool*)val.value.get() ? 1 : 0;
+        case EVAL_RES_TYPE::String:
+            throwScribbleError(node, "String", ERR_TYPE::BAD_TYPE);
+        case EVAL_RES_TYPE::Object:
+            throwScribbleError(node, "Object", ERR_TYPE::BAD_TYPE);
+        default:
+            throwScribbleError(node, "Unknown", ERR_TYPE::BAD_TYPE);
+    }
+
+    return 0;
 }
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type) {
