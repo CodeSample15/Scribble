@@ -1,7 +1,7 @@
 :START: {
-    num[2, 3] i = true
+    string i = "3" - "3"
 }
 
 :UPDATE: {
-
+    return
 }

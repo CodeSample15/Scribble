@@ -18,7 +18,9 @@ namespace Interpreter {
         Float,
         Bool,
         String,
-        Object
+        Object,
+
+        RETURN, // for returning from a function without a value
     };
 
     struct AnyValue {

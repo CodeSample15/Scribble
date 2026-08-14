@@ -140,41 +140,141 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::RETURN_STATEMENT:
+            returnContext->type = EVAL_RES_TYPE::RETURN;
             break;
 
-        case NODE_TYPE::EXP_ORL:
-            break;
+        case NODE_TYPE::EXP_ORL: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            bool res = extractNumValue(one, root->children[0]) || extractNumValue(two, root->children[1]);
 
-        case NODE_TYPE::EXP_ANDL:
-            break;
+            return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
+        }
 
-        case NODE_TYPE::EXP_OR:
-            break;
+        case NODE_TYPE::EXP_ANDL: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            bool res = extractNumValue(one, root->children[0]) && extractNumValue(two, root->children[1]);
 
-        case NODE_TYPE::EXP_XOR:
-            break;
+            return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
+        }
 
-        case NODE_TYPE::EXP_AND:
-            break;
+        case NODE_TYPE::EXP_OR: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
+            checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
+            SCRIBBLE_NUM_REP res = *(SCRIBBLE_NUM_REP*)one.value.get() | *(SCRIBBLE_NUM_REP*)two.value.get();
 
-        case NODE_TYPE::EXP_EQ:
-            break;
+            return AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(res), EVAL_RES_TYPE::Num};
+        }
 
-        case NODE_TYPE::EXP_CMP:
-            break;
+        case NODE_TYPE::EXP_XOR: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
+            checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
+            SCRIBBLE_NUM_REP res = *(SCRIBBLE_NUM_REP*)one.value.get() ^ *(SCRIBBLE_NUM_REP*)two.value.get();
 
-        case NODE_TYPE::EXP_SHFT:
-            break;
+            return AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(res), EVAL_RES_TYPE::Num};
+        }
 
-        case NODE_TYPE::EXP_ADD:
-            break;
+        case NODE_TYPE::EXP_AND: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
+            checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
+            SCRIBBLE_NUM_REP res = *(SCRIBBLE_NUM_REP*)one.value.get() & *(SCRIBBLE_NUM_REP*)two.value.get();
+
+            return AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(res), EVAL_RES_TYPE::Num};
+        }
+
+        case NODE_TYPE::EXP_EQ: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            bool res;
+
+            if(root->tok->type == TOK_TYPE::CMP_EQUALS)
+                res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
+            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS)
+                res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+            else
+                throwScribbleError(root, "EQ symbol not found", ERR_TYPE::INVALID_SYMBOL);
+
+            return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
+        }
+
+        case NODE_TYPE::EXP_CMP: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            bool res;
+
+            if(root->tok->type == TOK_TYPE::GREATER_THAN)
+                res = extractNumValue(one, root->children[0]) > extractNumValue(two, root->children[1]);
+            else if(root->tok->type == TOK_TYPE::GREATER_THAN_EQUAL)
+                res = extractNumValue(one, root->children[0]) >= extractNumValue(two, root->children[1]);
+            else if(root->tok->type == TOK_TYPE::LESS_THAN)
+                res = extractNumValue(one, root->children[0]) < extractNumValue(two, root->children[1]);
+            else if(root->tok->type == TOK_TYPE::LESS_THAN_EQUAL)
+                res = extractNumValue(one, root->children[0]) <= extractNumValue(two, root->children[1]);
+            else if(root->tok->type == TOK_TYPE::CMP_EQUALS)
+                res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
+            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS)
+                res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+            else
+                throwScribbleError(root, "CMP symbol not found", ERR_TYPE::INVALID_SYMBOL);
+
+            return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
+        }
+
+        case NODE_TYPE::EXP_SHFT: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+            checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
+            checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
+            SCRIBBLE_NUM_REP res;
+
+            if(root->tok->type == TOK_TYPE::SHIFT_LEFT)
+                res = *(SCRIBBLE_NUM_REP*)one.value.get() << *(SCRIBBLE_NUM_REP*)two.value.get();
+            else
+                res = *(SCRIBBLE_NUM_REP*)one.value.get() >> *(SCRIBBLE_NUM_REP*)two.value.get();
+
+            return AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(res), EVAL_RES_TYPE::Num};
+        }
+
+        case NODE_TYPE::EXP_ADD: {
+            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue two = eval(root->children[1], returnContext, memTable);
+
+            if(one.type == EVAL_RES_TYPE::String && one.type == two.type) {
+                if(root->tok->type == TOK_TYPE::MINUS)
+                    throwScribbleError(root, "Cannot subtract strings", ERR_TYPE::INVALID_OPERATION);
+
+                string res = *(string*)one.value.get() + *(string*)two.value.get();
+                return AnyValue{{1}, make_shared<string>(res), EVAL_RES_TYPE::String};
+            }
+
+            double res;
+            if(root->tok->type == TOK_TYPE::PLUS)
+                res = extractNumValue(one, root->children[0]) + extractNumValue(two, root->children[1]);
+            else
+                res = extractNumValue(one, root->children[0]) - extractNumValue(two, root->children[1]);
+
+            auto casted = castNumValue(res, one.type, two.type);
+            return AnyValue{{1}, casted.first, casted.second};
+        }
 
         case NODE_TYPE::EXP_MULT: {
             AnyValue one = eval(root->children[0], returnContext, memTable);
             AnyValue two = eval(root->children[1], returnContext, memTable);
-            double res = extractNumValue(one, root->children[0]) * extractNumValue(two, root->children[1]);
-            auto casted = castNumValue(res, one.type, two.type);
+            double res;
 
+            if(root->tok->lexeme == "*")
+                res = extractNumValue(one, root->children[0]) * extractNumValue(two, root->children[1]);
+            else
+                res = extractNumValue(one, root->children[0]) / extractNumValue(two, root->children[1]);
+
+            auto casted = castNumValue(res, one.type, two.type);
             return AnyValue{{1}, casted.first, casted.second};
         }
 
@@ -185,8 +285,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 extractNumValue(baseVal, root->children[0]),
                 extractNumValue(powVal, root->children[1])
             );
-            auto casted = castNumValue(res, baseVal.type, powVal.type);
 
+            auto casted = castNumValue(res, baseVal.type, powVal.type);
             return AnyValue{{1}, casted.first, casted.second};
         }
 
