@@ -126,6 +126,18 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
     }
 }
 
+std::string data_type_to_string(Interpreter::EVAL_RES_TYPE type) {
+    switch(type) {
+        case Interpreter::Num: return "num";
+        case Interpreter::Float: return "float";
+        case Interpreter::Bool: return "bool";
+        case Interpreter::String: return "string";
+        case Interpreter::Object: return "Object";
+
+        default: return "Other";
+    }
+}
+
 void print_AST(AST_Node &root) {
     cout << AST_To_String(root, true, 0) << endl;
 }

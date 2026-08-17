@@ -1,7 +1,7 @@
 :START: {
-    string i = "3" - "3"
+    string i = "3" + "3"
 }
 
 :UPDATE: {
-    return
+    return (0 + 3) == 2-7
 }

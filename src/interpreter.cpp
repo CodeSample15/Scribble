@@ -105,7 +105,32 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
         }
 
-        case NODE_TYPE::VARIABLE_ASSIGN:
+        case NODE_TYPE::VARIABLE_ASSIGN: {
+            // get reference to target variable
+            AnyValue targetRef = eval(root->children[0], returnContext, memTable);
+
+            // =, +=, -=, etc
+            TOK_TYPE assignOp = root->children[1]->tok->type;
+
+            // evaluate new value
+            AnyValue assignValue = eval(root->children[2], returnContext, memTable);
+
+            // assign value
+            if(targetRef.type == assignValue.type) {
+                
+            }
+            else if((targetRef.type == EVAL_RES_TYPE::Bool || targetRef.type == EVAL_RES_TYPE::Float || targetRef.type == EVAL_RES_TYPE::Num)
+                && (assignValue.type == EVAL_RES_TYPE::Bool || assignValue.type == EVAL_RES_TYPE::Float || assignValue.type == EVAL_RES_TYPE::Num)) {
+
+            } 
+            else {
+                throwScribbleError(root, "Variable type '" + data_type_to_string(targetRef.type) + "' does not match '" + data_type_to_string(assignValue.type) + "'", ERR_TYPE::INVALID_ASSIGNMENT);
+            }
+
+            break;
+        }
+
+        case NODE_TYPE::BUILT_IN_VAR_REFERENCE:
             break;
 
         case NODE_TYPE::VARIABLE_REFERENCE:
@@ -140,7 +165,10 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::RETURN_STATEMENT:
-            returnContext->type = EVAL_RES_TYPE::RETURN;
+            if(root->children.size() > 0)
+                *returnContext = eval(root->children[0], returnContext, memTable);
+            else
+                returnContext->type = EVAL_RES_TYPE::RETURN;
             break;
 
         case NODE_TYPE::EXP_ORL: {
