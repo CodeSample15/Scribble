@@ -18,10 +18,12 @@ shared_ptr<SymbolTable> newScopeWithParent(shared_ptr<SymbolTable> parent);
 EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node);
 
 void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr<AST_Node> &node);
+bool isPrimitive(EVAL_RES_TYPE t); // returns true if the passed type is a primitive type
 void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
+void castAndAssign(AnyValue &val, double newVal);
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type);
 
@@ -116,13 +118,40 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue assignValue = eval(root->children[2], returnContext, memTable);
 
             // assign value
-            if(targetRef.type == assignValue.type) {
-                
-            }
-            else if((targetRef.type == EVAL_RES_TYPE::Bool || targetRef.type == EVAL_RES_TYPE::Float || targetRef.type == EVAL_RES_TYPE::Num)
-                && (assignValue.type == EVAL_RES_TYPE::Bool || assignValue.type == EVAL_RES_TYPE::Float || assignValue.type == EVAL_RES_TYPE::Num)) {
+            if(isPrimitive(targetRef.type) && isPrimitive(assignValue.type)) {
+                double value = extractNumValue(assignValue, root->children[2]);
 
-            } 
+                switch(assignOp) {
+                    case TOK_TYPE::PLUS_EQUALS:
+                        value = extractNumValue(targetRef, root->children[0]) + value;
+                        break;
+                    case TOK_TYPE::MINUS_EQUALS:
+                        value =  extractNumValue(targetRef, root->children[0]) - value;
+                        break;
+                    case TOK_TYPE::STAR_EQUALS:
+                        value = extractNumValue(targetRef, root->children[0]) * value;
+                        break;
+                    case TOK_TYPE::SLASH_EQUALS:
+                        value = extractNumValue(targetRef, root->children[0]) / value;
+                        break;
+                    default:
+                        break;
+                }
+
+                castAndAssign(targetRef, value);
+            }
+            else if(targetRef.type == assignValue.type) {
+                if(assignOp != TOK_TYPE::EQUALS) {
+                    if(targetRef.type == EVAL_RES_TYPE::String && assignOp == TOK_TYPE::PLUS_EQUALS) {
+                        // append string
+                        *(string*)targetRef.value.get() += *(string*)assignValue.value.get();
+                    } else {
+                        throwScribbleError(root, "Invalid operation for '" + data_type_to_string(targetRef.type) + "'", ERR_TYPE::INVALID_OPERATION);
+                    }
+                } else {
+                    // TODO: cast non-primitive and assign
+                }
+            }
             else {
                 throwScribbleError(root, "Variable type '" + data_type_to_string(targetRef.type) + "' does not match '" + data_type_to_string(assignValue.type) + "'", ERR_TYPE::INVALID_ASSIGNMENT);
             }
@@ -378,6 +407,11 @@ void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr
     throwScribbleError(node, "Invalid value for datatype", ERR_TYPE::INVALID_ASSIGNMENT);
 }
 
+// returns true if the passed type is a primitive type
+bool isPrimitive(EVAL_RES_TYPE t) {
+    return t == EVAL_RES_TYPE::Bool || t == EVAL_RES_TYPE::Float || t == EVAL_RES_TYPE::Num;
+}
+
 void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node) {
     if(val.dimension.size() != 1 || val.dimension[0] != 1)
         throwScribbleError(node, "Value is array", ERR_TYPE::BAD_TYPE);
@@ -429,6 +463,23 @@ double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
     }
 
     return 0;
+}
+
+void castAndAssign(AnyValue &val, double newVal) {
+    switch(val.type) {
+         case EVAL_RES_TYPE::Num:
+            val.value = make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)newVal);
+            break;
+        case EVAL_RES_TYPE::Float:
+            val.value = make_shared<SCRIBBLE_FLOAT_REP>((SCRIBBLE_FLOAT_REP)newVal);
+            break;
+        case EVAL_RES_TYPE::Bool:
+            val.value = make_shared<bool>((bool)newVal);
+            break;
+        default:
+            log("Interpreter -> castAndAssign: Unexpected data type"); // Technically a developer error, not a user error, no need to throw
+            break;
+    }
 }
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type) {
