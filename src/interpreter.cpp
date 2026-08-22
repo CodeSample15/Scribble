@@ -74,7 +74,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
         case NODE_TYPE::VARIABLE_DEF: {
             vector<string> idents;
-            auto val = make_shared<AnyValue>();
+            AnyValue val;
 
             // get the datatype from the first child
             EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
@@ -87,11 +87,11 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             // get the assigned value or the default vale for the new variable
             if(i < root->children.size()) {
-                *val = eval(root->children[i], returnContext, memTable);
-                checkForAllowedDtype(*val, {dtype}, root->children[i]);
+                val = eval(root->children[i], returnContext, memTable);
+                checkForAllowedDtype(val, {dtype}, root->children[i]);
             } 
             else {
-                *val = AnyValue{{1}, defaultValueFor(dtype), dtype};
+                val = AnyValue{{1}, defaultValueFor(dtype), dtype};
             }
 
             if(returnContext == nullptr) {
@@ -101,7 +101,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             else {
                 // Store in the memory table (we're in a function)
                 for(auto& i : idents) {
-                    memTable->values.emplace_back(pair<string, shared_ptr<AnyValue>> {i, val});
+                    memTable->values.emplace_back(pair<string, AnyValue>{i, val});
                 }
             }
             break;
@@ -153,7 +153,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 }
             }
             else {
-                throwScribbleError(root, "Variable type '" + data_type_to_string(targetRef.type) + "' does not match '" + data_type_to_string(assignValue.type) + "'", ERR_TYPE::INVALID_ASSIGNMENT);
+                throwScribbleError(root->children[2], "Variable type '" + data_type_to_string(targetRef.type) + "' does not match '" + data_type_to_string(assignValue.type) + "'", ERR_TYPE::INVALID_ASSIGNMENT);
             }
 
             break;
@@ -162,8 +162,22 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::BUILT_IN_VAR_REFERENCE:
             break;
 
-        case NODE_TYPE::VARIABLE_REFERENCE:
+        case NODE_TYPE::VARIABLE_REFERENCE: {
+            string ident = root->children[0]->tok->lexeme;
+            auto& memTablePtr = memTable;
+
+            while(memTablePtr != nullptr) {
+                for(auto& var : memTablePtr->values) {
+                    if(var.first == ident) return var.second;
+                }
+                memTablePtr = memTablePtr->parent;
+            }
+
+            //TODO: search global memory
+
+            throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
             break;
+        }
 
         case NODE_TYPE::START_FUNC:
             StartFunction = root;

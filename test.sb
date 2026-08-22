@@ -1,5 +1,7 @@
 :START: {
-    string i = "3" + "3"
+    num j = 32+5
+    j += 3
+    return j
 }
 
 :UPDATE: {
