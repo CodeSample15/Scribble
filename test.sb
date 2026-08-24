@@ -1,7 +1,7 @@
 :START: {
     num j = 32+5
     j += 3
-    return j
+    return $JOY_Y
 }
 
 :UPDATE: {

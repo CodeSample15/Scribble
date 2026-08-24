@@ -1,12 +1,14 @@
 #include <cmath>
 
 #include "interpreter.hpp"
+#include "runtime/built_in.hpp"
 #include "debug.hpp"
 
 using namespace Interpreter;
 using namespace std;
 
-vector<SharedSymbol> GlobalValues;
+vector<SharedSymbol> Interpreter::GlobalValues;
+SymbolTableValues Interpreter::BuiltInVariables; 
 
 shared_ptr<AST_Node> Interpreter::StartFunction = nullptr;
 shared_ptr<AST_Node> Interpreter::UpdateFunction = nullptr;
@@ -40,6 +42,8 @@ void Interpreter::InitRuntime() {
         {"string", EVAL_RES_TYPE::String},
         {"Object", EVAL_RES_TYPE::Object},
     };
+
+    BuiltIn::init(BuiltInVariables);
 }
 
 AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> returnContext, shared_ptr<SymbolTable> memTable) {
@@ -64,6 +68,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             auto updateFunctionReturnCtx = make_shared<AnyValue>();
             while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None) {
                 eval(UpdateFunction->children[0], updateFunctionReturnCtx, newScopeWithParent(memTable));
+                BuiltIn::update(BuiltInVariables);
             }
             break;
         }
@@ -159,8 +164,16 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
         }
 
-        case NODE_TYPE::BUILT_IN_VAR_REFERENCE:
+        case NODE_TYPE::BUILT_IN_VAR_REFERENCE: {
+            string ident = root->tok->lexeme;
+
+            for(auto& var : BuiltInVariables) {
+                if(var.first == ident) return var.second;
+            }
+
+            throwScribbleError(root, "Built in variable '" + ident + "' does not exist.", ERR_TYPE::INVALID_SYMBOL);
             break;
+        }
 
         case NODE_TYPE::VARIABLE_REFERENCE: {
             string ident = root->children[0]->tok->lexeme;

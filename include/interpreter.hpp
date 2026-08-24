@@ -9,7 +9,7 @@
 #define SCRIBBLE_NUM_REP int32_t
 #define SCRIBBLE_FLOAT_REP double
 
-#define SymbolTableValues std::vector< std::pair< std::string, AnyValue > >
+#define SymbolTableValues std::vector< std::pair< std::string, Interpreter::AnyValue > >
 
 namespace Interpreter {
     enum EVAL_RES_TYPE : uint8_t {
@@ -41,10 +41,10 @@ namespace Interpreter {
     };
 
     extern std::vector<SharedSymbol> GlobalValues;
+    extern SymbolTableValues BuiltInVariables;
 
     extern std::shared_ptr<AST_Node> StartFunction;
     extern std::shared_ptr<AST_Node> UpdateFunction;
-    extern SymbolTableValues BuiltInVariables;
     extern std::unordered_map<std::string, std::shared_ptr<AST_Node>> Functions;
     extern std::unordered_map<std::string, EVAL_RES_TYPE> ValidDTypes;
 
