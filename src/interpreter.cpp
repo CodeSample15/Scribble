@@ -214,8 +214,10 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::LOOP_WHILE:
             break;
 
-        case NODE_TYPE::FUNCTION_DEF:
+        case NODE_TYPE::FUNCTION_DEF: {
+            
             break;
+        }
 
         case NODE_TYPE::FUNCTION_CALL:
             break;
