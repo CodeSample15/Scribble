@@ -330,7 +330,8 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
         AST_Node res;
 
         tie(n, res) = alt(n, {
-            parse_variable_def, 
+            parse_function_call,
+            parse_variable_def,
             parse_variable_assign, 
             parse_branch, 
             parse_loop, 
