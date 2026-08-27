@@ -209,11 +209,30 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::BRANCH:
             break;
 
-        case NODE_TYPE::LOOP_REPEAT:
-            break;
+        case NODE_TYPE::LOOP_REPEAT: {
+            // evaluate the number of times that we need to loop
+            AnyValue v = eval(root->children[0], returnContext, memTable);
+            size_t times = (size_t)max(0.0, extractNumValue(v, root->children[0]));
 
-        case NODE_TYPE::LOOP_WHILE:
+            // evaluate body of statement in a for loop
+            for(size_t i=0; i<times; i++) {
+                eval(root->children[1], returnContext, newScopeWithParent(memTable));
+
+                if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None && returnContext->type != EVAL_RES_TYPE::RETURN) break;
+            }
             break;
+        }
+
+        case NODE_TYPE::LOOP_WHILE: {
+            AnyValue v = eval(root->children[0], returnContext, memTable);
+            while(extractNumValue(v, root->children[0]) != 0) {
+                eval(root->children[1], returnContext, newScopeWithParent(memTable));
+
+                if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None && returnContext->type != EVAL_RES_TYPE::RETURN) break;
+                v = eval(root->children[0], returnContext, memTable);
+            }
+            break;
+        }
 
         case NODE_TYPE::FUNCTION_DEF: {
             string ident = root->children[0]->type == NODE_TYPE::IDENT ?

@@ -5,7 +5,11 @@
 }
 
 :UPDATE: {
-    foo(23, 2.23)
+    num test = 3
+    while test > 0 {
+        foo(23, 2.23)
+        test = 0
+    }
     return (0 + 3) == 2-7
 }
 
