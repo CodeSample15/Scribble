@@ -66,6 +66,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // Run main loop
             // TODO: Include method of gracefully breaking out of this loop through the graphical window
             auto updateFunctionReturnCtx = make_shared<AnyValue>();
+            updateFunctionReturnCtx->type = EVAL_RES_TYPE::None;
             while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None) {
                 eval(UpdateFunction->children[0], updateFunctionReturnCtx, newScopeWithParent(memTable));
                 BuiltIn::update(BuiltInVariables);
@@ -215,12 +216,96 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::FUNCTION_DEF: {
-            
+            string ident = root->children[0]->type == NODE_TYPE::IDENT ?
+                            root->children[0]->tok->lexeme : root->children[1]->tok->lexeme;
+
+            Functions.insert({ident, root});
             break;
         }
 
-        case NODE_TYPE::FUNCTION_CALL:
+        case NODE_TYPE::FUNCTION_CALL: {
+            string ident = root->children[0]->tok->lexeme;
+
+            // attempt to find the function being called
+            auto search = Functions.find(ident);
+            if(search == Functions.end())
+                throwScribbleError(root->children[0], "Function not defined", ERR_TYPE::INVALID_FUN_CALL);
+            auto funPtr = search->second;
+
+            // evaluate args
+            vector<AnyValue> args;
+            if(root->children.size() > 1) {
+                for(auto &a : root->children[1]->children) {
+                    args.emplace_back(eval(a, returnContext, memTable));
+                }
+            }
+
+            // get parameter names and types
+            vector<pair<EVAL_RES_TYPE, string>> params;
+            for(auto &child : funPtr->children) {
+                if(child->type == NODE_TYPE::PARAMETERS) {
+                    for(size_t i=0; i<child->children.size()-1; i+=2) {
+                        EVAL_RES_TYPE type = dtypeFromIdent(child->children[i]);
+                        string name = child->children[i+1]->tok->lexeme;
+                        params.push_back({type, name});
+                    }
+
+                    break;
+                }
+            }
+
+            // create stack / scope
+            auto funMemTable = make_shared<SymbolTable>();
+            funMemTable->parent = nullptr;
+
+            // check if args match params
+            if(args.size() == params.size()) {
+                for(size_t i=0; i<args.size(); i++) {
+                    string name = params[i].second;
+
+                    if(isPrimitive(params[i].first) && isPrimitive(args[i].type)) {
+                        // convert the passed argument to a numerical value and then recast to target parameter type
+                        double rawArg = extractNumValue(args[i], root);
+
+                        // reassign type and automatically cast
+                        args[i].type = params[i].first;
+                        castAndAssign(args[i], rawArg);
+
+                        funMemTable->values.push_back({
+                            name,
+                            args[i]
+                        });
+                    }
+                    else if(!isPrimitive(params[i].first) && !isPrimitive(args[i].type)) {
+                        if(params[i].first == args[i].type) {
+                            // pass by reference
+                            funMemTable->values.push_back({
+                                name, 
+                                args[i]
+                            });
+                        } else {
+                            throwScribbleError(root->children[1], "Expected type '" + data_type_to_string(params[i].first) + "', got '" + data_type_to_string(args[i].type) + "'", ERR_TYPE::BAD_TYPE);
+                        }
+                    }
+                    else {
+                        throwScribbleError(root->children[1], "Expected type '" + data_type_to_string(params[i].first) + "', got '" + data_type_to_string(args[i].type) + "'", ERR_TYPE::BAD_TYPE);
+                    }
+                }
+            } else {
+              throwScribbleError(root->children[0], "Invalid number of arguments. Expected: " + to_string(params.size()) + ", got: " + to_string(args.size()), ERR_TYPE::INVALID_FUN_CALL);  
+            }
+
+            // evaluate function call
+            auto funcReturnCtx = make_shared<AnyValue>();
+            funcReturnCtx->type = EVAL_RES_TYPE::None;
+            eval(funPtr->children[funPtr->children.size()-1], funcReturnCtx, funMemTable);
+
+            // return value if value returned
+            if(funcReturnCtx != nullptr && funcReturnCtx->type != EVAL_RES_TYPE::None && funcReturnCtx->type != EVAL_RES_TYPE::RETURN)
+                return *funcReturnCtx;
+
             break;
+        }
 
         case NODE_TYPE::RETURN_STATEMENT:
             if(root->children.size() > 0)

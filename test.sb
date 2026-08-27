@@ -5,5 +5,10 @@
 }
 
 :UPDATE: {
+    foo(23, 2.23)
     return (0 + 3) == 2-7
+}
+
+fun foo(float first, num second) {
+    return 3
 }
