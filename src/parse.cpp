@@ -67,9 +67,13 @@ AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
         throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "START", ERR_TYPE::EXPECTED};
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
 
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
-    tie(nibbler, tmp) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    try {
+        nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+        tie(nibbler, tmp) = parse_body(nibbler);
+        nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    } catch(ScribbleErr& e) {
+        nibbler.logErr(e);
+    }
 
     AST_Node res(NODE_TYPE::START_FUNC);
     push_children(res, {tmp});
@@ -86,9 +90,13 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
         throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "UPDATE", ERR_TYPE::EXPECTED};
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
 
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
-    tie(nibbler, tmp) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    try {
+        nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+        tie(nibbler, tmp) = parse_body(nibbler);
+        nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    } catch(ScribbleErr &e) {
+        nibbler.logErr(e);
+    }
 
     AST_Node res(NODE_TYPE::UPDATE_FUNC);
     push_children(res, {tmp});
@@ -734,6 +742,7 @@ void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon) 
 
 //define the Nibbler helper class
 tok_vec_t* Nibbler::tokens = nullptr;
+vector<ScribbleErr> Nibbler::errs;
 
 Nibbler::Nibbler(tok_vec_t* tokens, size_t pos) {
     Nibbler::tokens = tokens;
@@ -747,4 +756,12 @@ Nibbler::Nibbler(size_t pos) {
 Token Nibbler::next() {
     if(pos >= tokens->size()) throw (ScribbleErr) {0, 0, "", ERR_TYPE::EOT};
     return tokens->at(pos++);
+}
+
+void Nibbler::logErr(ScribbleErr &e) {
+    Nibbler::errs.push_back(e);
+}
+
+vector<ScribbleErr> Nibbler::getErrs() {
+    return Nibbler::errs;
 }

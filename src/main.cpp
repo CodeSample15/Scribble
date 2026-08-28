@@ -19,20 +19,31 @@ int main(int argc, char** argv) {
         return 0;
     }
 
+    vector<Token> tokens = lex(input);
     try {
         cout << "Lexing..." << endl;
-        vector<Token> tokens = lex(input);
         lex_strip(tokens);
         print_tokens(tokens);
+    } catch (ScribbleErr e) {
+        PrintSErrMessage(e, input);
+    }
 
-        cout << endl;
-        cout << endl;
+    cout << endl;
+    cout << endl;
 
+    Nibbler nibbler(&tokens);
+    try {
         cout << "Parsing..." << endl;
-        Nibbler nibbler(&tokens);
         AST_Node AST = parse_program(nibbler).second;
         cout << "Done" << endl;
         print_AST(AST);
+
+        if(nibbler.getErrs().size() != 0) {
+            for(auto &err : nibbler.getErrs()) {
+                PrintSErrMessage(err, input);
+            }
+            return 0;
+        }
 
         cout << endl;
         cout << endl;
@@ -42,6 +53,9 @@ int main(int argc, char** argv) {
     }
     catch (ScribbleErr e) {
         PrintSErrMessage(e, input);
+        for(auto &err : nibbler.getErrs()) {
+            PrintSErrMessage(err, input);
+        }
     }
 
     return 0;

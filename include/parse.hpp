@@ -20,8 +20,12 @@ public:
     Nibbler(tok_vec_t* tokens, size_t pos=0);
     Nibbler(size_t pos=0);
     Token next(); //throws ScribbleError when encountering an EOF
+    void logErr(ScribbleErr &e);
+    std::vector<ScribbleErr> getErrs();
+
     size_t pos;
 private:
+    static std::vector<ScribbleErr> errs; // for keeping track of parser errors that can't be ignored
     static tok_vec_t* tokens;
 };
 
