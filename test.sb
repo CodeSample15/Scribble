@@ -10,6 +10,16 @@
         foo(23, 2.23)
         test -= 1
     }
+
+    if test > 3 {
+
+    } else if test == 3 {
+
+    }
+    else {
+        
+    }
+
     return (0 + 3) == 2-7
 }
 

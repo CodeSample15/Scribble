@@ -207,6 +207,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::BRANCH:
+            for(auto& b : root->children) {
+                
+            }
             break;
 
         case NODE_TYPE::LOOP_REPEAT: {
