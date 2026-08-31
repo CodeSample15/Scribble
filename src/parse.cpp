@@ -416,7 +416,7 @@ AST_Nib_Pair_t parse_branch_else(Nibbler nibbler) {
     tie(nibbler, body) = parse_body(nibbler);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
-    AST_Node res(NODE_TYPE::LOOP_REPEAT);
+    AST_Node res(NODE_TYPE::BRANCH_ELSE);
     push_children(res, {body});
 
     return {nibbler, res};
