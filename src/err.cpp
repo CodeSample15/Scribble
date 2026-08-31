@@ -8,7 +8,7 @@ string get_line_from_source(string &source, size_t line_num);
 
 void PrintSErrMessage(ScribbleErr e, string &source) {
     string col_spacing = "";
-    for(int i=0; i<e.col; i++) col_spacing += ' ';
+    for(size_t i=0; i<e.col; i++) col_spacing += ' ';
 
     cout << "----------- Scribble error -----------" << endl;
     cout << endl;

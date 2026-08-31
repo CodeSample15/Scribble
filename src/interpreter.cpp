@@ -25,7 +25,7 @@ void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
-void castAndAssign(AnyValue &val, double newVal);
+void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type);
 
@@ -144,7 +144,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                         break;
                 }
 
-                castAndAssign(targetRef, value);
+                castAndAssign(targetRef, value, true);
             }
             else if(targetRef.type == assignValue.type) {
                 if(assignOp != TOK_TYPE::EQUALS) {
@@ -598,16 +598,25 @@ double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
     return 0;
 }
 
-void castAndAssign(AnyValue &val, double newVal) {
+void castAndAssign(AnyValue &val, double newVal, bool inPlace) {
     switch(val.type) {
          case EVAL_RES_TYPE::Num:
-            val.value = make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)newVal);
+            if(inPlace)
+                *(SCRIBBLE_NUM_REP*)val.value.get() = (SCRIBBLE_NUM_REP)newVal;
+            else
+                val.value = make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)newVal);
             break;
         case EVAL_RES_TYPE::Float:
-            val.value = make_shared<SCRIBBLE_FLOAT_REP>((SCRIBBLE_FLOAT_REP)newVal);
+            if(inPlace)
+                *(SCRIBBLE_FLOAT_REP*)val.value.get() = (SCRIBBLE_FLOAT_REP)newVal;
+            else
+                val.value = make_shared<SCRIBBLE_FLOAT_REP>((SCRIBBLE_FLOAT_REP)newVal);
             break;
         case EVAL_RES_TYPE::Bool:
-            val.value = make_shared<bool>((bool)newVal);
+            if(inPlace)
+                *(bool*)val.value.get() = (bool)inPlace;
+            else
+                val.value = make_shared<bool>((bool)newVal);
             break;
         default:
             log("Interpreter -> castAndAssign: Unexpected data type"); // Technically a developer error, not a user error, no need to throw
