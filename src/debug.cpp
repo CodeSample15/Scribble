@@ -23,7 +23,7 @@ string tok_type_to_string(TOK_TYPE tok) {
         case USE: return "use";
         case AS: return "as";
         case IF: return "if";
-        case IF_ELSE: return "if else";
+        case ELSE_IF: return "else if";
         case ELSE: return "else";
         case WHILE: return "while";
         case REPEAT: return "repeat";
@@ -98,7 +98,7 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
         case BODY: return "body";
         case BRANCH: return "branch";
         case BRANCH_IF: return "if";
-        case BRANCH_IF_ELSE: return "if else";
+        case BRANCH_ELSE_IF: return "else if";
         case BRANCH_ELSE: return "else";
         case LOOP_WHILE: return "loop while";
         case LOOP_REPEAT: return "loop repeat";

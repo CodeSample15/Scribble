@@ -12,7 +12,7 @@
     }
 
     if test > 3 {
-
+        test = 1
     } else if test == 3 {
 
     }

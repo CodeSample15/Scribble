@@ -12,7 +12,7 @@ void PrintSErrMessage(ScribbleErr e, string &source) {
 
     cout << "----------- Scribble error -----------" << endl;
     cout << endl;
-    cout << "  " << e.line << ": " << get_line_from_source(source, e.line) << endl;
+    cout << "  " << e.line+1 << ": " << get_line_from_source(source, e.line) << endl;
     cout << "     " << col_spacing << "^" << endl;
     cout << "  " << errmsg(e.type) << endl;
     if(e.msg.size()!=0) 

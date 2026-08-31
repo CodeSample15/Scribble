@@ -364,7 +364,7 @@ AST_Nib_Pair_t parse_branch(Nibbler nibbler) {
     node_vec_t ifElseNodes;
 
     tie(nibbler, ifNode) = parse_branch_if(nibbler);
-    tie(nibbler, ifElseNodes) = many_0(nibbler, parse_branch_if_else);
+    tie(nibbler, ifElseNodes) = many_0(nibbler, parse_branch_else_if);
     tie(nibbler, elseNode) = opt(nibbler, parse_branch_else);
 
     AST_Node res(NODE_TYPE::BRANCH);
@@ -391,17 +391,17 @@ AST_Nib_Pair_t parse_branch_if(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// 'if else' , expression , '{' , body , '}'
-AST_Nib_Pair_t parse_branch_if_else(Nibbler nibbler) {
+// 'else if' , expression , '{' , body , '}'
+AST_Nib_Pair_t parse_branch_else_if(Nibbler nibbler) {
     AST_Node expression, body;
 
-    nibbler = require(nibbler, TOK_TYPE::IF_ELSE).first;
+    nibbler = require(nibbler, TOK_TYPE::ELSE_IF).first;
     tie(nibbler, expression) = parse_expression(nibbler);
     nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
     tie(nibbler, body) = parse_body(nibbler);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
-    AST_Node res(NODE_TYPE::BRANCH_IF_ELSE);
+    AST_Node res(NODE_TYPE::BRANCH_ELSE_IF);
     push_children(res, {expression, body});
 
     return {nibbler, res};

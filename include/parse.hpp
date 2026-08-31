@@ -61,7 +61,7 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler);
 //branch related
 AST_Nib_Pair_t parse_branch(Nibbler nibbler);
 AST_Nib_Pair_t parse_branch_if(Nibbler nibbler);
-AST_Nib_Pair_t parse_branch_if_else(Nibbler nibbler);
+AST_Nib_Pair_t parse_branch_else_if(Nibbler nibbler);
 AST_Nib_Pair_t parse_branch_else(Nibbler nibbler);
 
 //loop related

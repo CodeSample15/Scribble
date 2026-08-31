@@ -10,16 +10,16 @@ enum TOK_TYPE {
 
     //keywords
     IF,                             // if
-    IF_ELSE,                        // if else
+    ELSE_IF,                        // else if
     ELSE,                           // else
 
     WHILE,                          // while
     REPEAT,                         // repeat
 
-    TRUE,                           //true
-    FALSE,                          //false
+    TRUE,                           // true
+    FALSE,                          // false
 
-    RETURN,                         //return
+    RETURN,                         // return
 
     FUNCTION_DEFINE,                // fun
 

@@ -74,7 +74,7 @@ void load_lexer_tests(vector<test_t> &tests) {
     tests.emplace_back("LEX: keyword: use", [&]{ test_type_lex("use", TOK_TYPE::USE, "use"); });
     tests.emplace_back("LEX: keyword: as", [&]{ test_type_lex("as", TOK_TYPE::AS, "as"); });
     tests.emplace_back("LEX: keyword: if", [&]{ test_type_lex("if", TOK_TYPE::IF, "if"); });
-    tests.emplace_back("LEX: keyword: if else", [&]{ test_type_lex("if else", TOK_TYPE::IF_ELSE, "if else"); });
+    tests.emplace_back("LEX: keyword: else if", [&]{ test_type_lex("else if", TOK_TYPE::ELSE_IF, "else if"); });
     tests.emplace_back("LEX: keyword: else", [&]{ test_type_lex("else", TOK_TYPE::ELSE, "else"); });
     tests.emplace_back("LEX: keyword: while", [&]{ test_type_lex("while", TOK_TYPE::WHILE, "while"); });
     tests.emplace_back("LEX: keyword: repeat", [&]{ test_type_lex("repeat", TOK_TYPE::REPEAT, "repeat"); });
@@ -89,22 +89,22 @@ void load_lexer_tests(vector<test_t> &tests) {
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
-    //make sure things like 'if else' only lex as an if-else token if there are no invalid characters following the pattern
+    //make sure things like 'else if' only lex as an else-if token if there are no invalid characters following the pattern
     tests.emplace_back("LEX: has_next can't be tricked", [&]{ 
-        test_multiple_types("if elsee", {
-            TOK_TYPE::IF, TOK_TYPE::WHITESPACE, TOK_TYPE::IDENTIFIER
-        }); 
+        test_multiple_types("else iff", {
+            TOK_TYPE::ELSE, TOK_TYPE::WHITESPACE, TOK_TYPE::IDENTIFIER
+        });
     });
 
     tests.emplace_back("LEX: has_next ignores non alpha", [&]{ 
-        test_multiple_types("if else{", {
-            TOK_TYPE::IF_ELSE, TOK_TYPE::OPEN_CURLY
+        test_multiple_types("else if{", {
+            TOK_TYPE::ELSE_IF, TOK_TYPE::OPEN_CURLY
         }); 
     });
 
     tests.emplace_back("LEX: has_next ignores non alpha 2", [&]{ 
-        test_multiple_types("if else {", {
-            TOK_TYPE::IF_ELSE, TOK_TYPE::WHITESPACE, TOK_TYPE::OPEN_CURLY
+        test_multiple_types("else if {", {
+            TOK_TYPE::ELSE_IF, TOK_TYPE::WHITESPACE, TOK_TYPE::OPEN_CURLY
         }); 
     });
 

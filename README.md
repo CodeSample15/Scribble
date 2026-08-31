@@ -83,10 +83,10 @@ INCR_DECR_OP        = '--' | '++'
 VARTYPE             = ('num' | 'float' | 'bool' | 'string' | CLASS_NAME) , [arr_index]
 
 # branches
-branch              = branch_if ,  {branch_if_else} , [branch_else]
+branch              = branch_if ,  {branch_else_if} , [branch_else]
 
 branch_if           = 'if' , expression , '{' , body , '}'
-branch_if_else      = 'if else' , expression , '{' , body , '}'
+branch_else_if      = 'else if' , expression , '{' , body , '}'
 branch_else         = 'else' , '{' , body , '}'
 
 # loops

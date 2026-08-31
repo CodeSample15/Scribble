@@ -208,7 +208,24 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
         case NODE_TYPE::BRANCH:
             for(auto& b : root->children) {
-                
+                switch(b->type) {
+                    case NODE_TYPE::BRANCH_IF:
+                    case NODE_TYPE::BRANCH_ELSE_IF: {
+                        AnyValue e = eval(b->children[0], returnContext, memTable);
+                        double t = extractNumValue(e, b->children[0]);
+                        if(t != 0) {
+                            eval(b->children[1], returnContext, newScopeWithParent(memTable));
+                            return AnyValue{};
+                        }
+                        
+                        break;
+                    }
+                    case NODE_TYPE::BRANCH_ELSE:
+                        return AnyValue{};
+                    default:
+                        log("Interpreter: Unexpected node in branch -> '" + AST_node_type_to_string(b->type) + "'");
+                        return AnyValue{};
+                }
             }
             break;
 
