@@ -23,7 +23,7 @@ string tok_type_to_string(TOK_TYPE tok) {
         case USE: return "use";
         case AS: return "as";
         case IF: return "if";
-        case IF_ELSE: return "if else";
+        case ELSE_IF: return "else if";
         case ELSE: return "else";
         case WHILE: return "while";
         case REPEAT: return "repeat";
@@ -32,6 +32,7 @@ string tok_type_to_string(TOK_TYPE tok) {
         case FUNCTION_DEFINE: return "function define";
         case NUMBER_TYPE: return "num type";
         case FLOAT_TYPE: return "float type";
+        case BOOL_TYPE: return "Boolean type";
         case STRING_TYPE: return "string type";
         case IDENTIFIER: return "identifier";
         case STRING_LITERAL: return "string literal";
@@ -97,7 +98,7 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
         case BODY: return "body";
         case BRANCH: return "branch";
         case BRANCH_IF: return "if";
-        case BRANCH_IF_ELSE: return "if else";
+        case BRANCH_ELSE_IF: return "else if";
         case BRANCH_ELSE: return "else";
         case LOOP_WHILE: return "loop while";
         case LOOP_REPEAT: return "loop repeat";
@@ -125,6 +126,18 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
     }
 }
 
+std::string data_type_to_string(Interpreter::EVAL_RES_TYPE type) {
+    switch(type) {
+        case Interpreter::Num: return "num";
+        case Interpreter::Float: return "float";
+        case Interpreter::Bool: return "bool";
+        case Interpreter::String: return "string";
+        case Interpreter::Object: return "Object";
+
+        default: return "Other";
+    }
+}
+
 void print_AST(AST_Node &root) {
     cout << AST_To_String(root, true, 0) << endl;
 }
@@ -141,7 +154,7 @@ string AST_To_String(AST_Node &root, bool recursive, int layer) {
     if(recursive && root.children.size() != 0) {
         res += get_tab_space(layer+1) + "Children:\n";
         for(auto& i : root.children)
-            res += AST_To_String(i, true, layer+2) + "\n";
+            res += AST_To_String(*i, true, layer+2) + "\n";
     }
 
     return res;

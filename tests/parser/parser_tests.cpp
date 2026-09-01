@@ -33,7 +33,7 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
     tests.emplace_back("PARSE: Expression 1", [&]{ test_return_type("(a+b-c)", parse_expression, NODE_TYPE::EXP_ADD); });
-    tests.emplace_back("PARSE: Expression 2", [&]{ test_return_type("2", parse_expression, NODE_TYPE::EXP_PRIMARY); });
+    tests.emplace_back("PARSE: Expression 2", [&]{ test_return_type("3+2", parse_expression, NODE_TYPE::EXP_ADD); });
     tests.emplace_back("PARSE: Expression 3", [&]{ test_return_type("3*4", parse_expression, NODE_TYPE::EXP_MULT); });
     tests.emplace_back("PARSE: Expression 4", [&]{ test_return_type("2/4", parse_expression, NODE_TYPE::EXP_MULT); });
     tests.emplace_back("PARSE: Expression 5", [&]{ test_return_type("2+2", parse_expression, NODE_TYPE::EXP_ADD); });
@@ -49,7 +49,11 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Expression 15", [&]{ test_return_type("a>b", parse_expression, NODE_TYPE::EXP_CMP); });
     tests.emplace_back("PARSE: Expression 16", [&]{ test_return_type("a<b", parse_expression, NODE_TYPE::EXP_CMP); });
     tests.emplace_back("PARSE: Expression 17", [&]{ test_return_type("a<=b", parse_expression, NODE_TYPE::EXP_CMP); });
-    tests.emplace_back("PARSE: Expression 18", [&]{ test_return_type("a>=b", parse_expression, NODE_TYPE::EXP_CMP); });
+    tests.emplace_back("PARSE: Expression 18", [&]{ test_return_type("1", parse_expression, NODE_TYPE::EXP_PRIMARY); });
+    tests.emplace_back("PARSE: Expression 19", [&]{ test_return_type("a", parse_expression, NODE_TYPE::VARIABLE_REFERENCE); });
+    tests.emplace_back("PARSE: Expression 20", [&]{ test_return_type("true", parse_expression, NODE_TYPE::EXP_PRIMARY); });
+    tests.emplace_back("PARSE: Expression 21", [&]{ test_return_type("false", parse_expression, NODE_TYPE::EXP_PRIMARY); });
+    tests.emplace_back("PARSE: Expression 22", [&]{ test_return_type("23.34", parse_expression, NODE_TYPE::EXP_PRIMARY); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
@@ -106,6 +110,7 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Return statement 4", [&]{ test_return_type("return a+b", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
     tests.emplace_back("PARSE: Return statement 5", [&]{ test_return_type("return 2.34", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
     tests.emplace_back("PARSE: Return statement 6", [&]{ test_return_type("return test()+3", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
+    tests.emplace_back("PARSE: Return statement 7", [&]{ test_return_type("return", parse_return_statement, NODE_TYPE::RETURN_STATEMENT); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 

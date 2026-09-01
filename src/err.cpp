@@ -8,11 +8,11 @@ string get_line_from_source(string &source, size_t line_num);
 
 void PrintSErrMessage(ScribbleErr e, string &source) {
     string col_spacing = "";
-    for(int i=0; i<e.col; i++) col_spacing += ' ';
+    for(size_t i=0; i<e.col; i++) col_spacing += ' ';
 
     cout << "----------- Scribble error -----------" << endl;
     cout << endl;
-    cout << "  " << e.line << ": " << get_line_from_source(source, e.line) << endl;
+    cout << "  " << e.line+1 << ": " << get_line_from_source(source, e.line) << endl;
     cout << "     " << col_spacing << "^" << endl;
     cout << "  " << errmsg(e.type) << endl;
     if(e.msg.size()!=0) 
@@ -32,6 +32,7 @@ string errmsg(ERR_TYPE t) {
             return "Unrecognized pattern in source code";
         case ERR_TYPE::EXPECTED:
             return "Expected:";
+        //TODO: add new error messages
         default:
             return "Unimplemented Error Message";
     }

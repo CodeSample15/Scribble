@@ -16,6 +16,14 @@ typedef enum {
     EOT, // end of tokens
 
     // runtime errors
+    BAD_TYPE,           // unexpected type
+    MISSING_REQUIRED,   // missing a required function
+    UNEXPECTED_TOKEN,   // unexpected token
+    INVALID_FUN_CALL,   // invalid function call
+    UNKNOWN_DTYPE,      // unknown dtype referenced
+    INVALID_ASSIGNMENT, // invalid value assignment
+    INVALID_SYMBOL,     // symbol not found
+    INVALID_OPERATION,  // invalid operation
 } ERR_TYPE;
 
 /*

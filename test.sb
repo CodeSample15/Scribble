@@ -1,1 +1,30 @@
-a>=b
+num x = 3
+
+:START: {
+    num j = 32+5
+    j += 3
+    return $JOY_Y
+}
+
+:UPDATE: {
+    num test = 3
+    while test > 0 {
+        foo(23, 2.23)
+        test -= 1
+    }
+
+    if test > 3 {
+        test = 1
+    } else if test == 3 {
+
+    }
+    else {
+        
+    }
+
+    return (0 + 3) == 2-7
+}
+
+fun foo(float first, num second) {
+    return 3
+}

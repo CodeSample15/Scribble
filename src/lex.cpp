@@ -207,15 +207,15 @@ TOK_TYPE check_is_keyword(string &lexeme, file_reader::file_reader &fr) {
         return TOK_TYPE::USE;
     else if(lexeme == "as")
         return TOK_TYPE::AS;
-    else if(lexeme == "if") {
-        //check for else in "if else"
-        if(fr.has_next(" else", lexeme)) { 
-            return TOK_TYPE::IF_ELSE;
-        }
+    else if(lexeme == "if")
         return TOK_TYPE::IF;
-    }
-    else if(lexeme == "else")
+    else if(lexeme == "else") {
+        //check for else in "else if"
+        if(fr.has_next(" if", lexeme)) { 
+            return TOK_TYPE::ELSE_IF;
+        }
         return TOK_TYPE::ELSE;
+    }
     else if(lexeme == "while")
         return TOK_TYPE::WHILE;
     else if(lexeme == "repeat")
@@ -230,6 +230,8 @@ TOK_TYPE check_is_keyword(string &lexeme, file_reader::file_reader &fr) {
         return TOK_TYPE::NUMBER_TYPE;
     else if(lexeme == "float")
         return TOK_TYPE::FLOAT_TYPE;
+    else if(lexeme == "bool")
+        return TOK_TYPE::BOOL_TYPE;
     else if(lexeme == "string")
         return TOK_TYPE::STRING_TYPE;
     else if(lexeme == "return")

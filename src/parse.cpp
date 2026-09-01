@@ -67,9 +67,13 @@ AST_Nib_Pair_t parse_start_func(Nibbler nibbler) {
         throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "START", ERR_TYPE::EXPECTED};
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
 
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
-    tie(nibbler, tmp) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    try {
+        nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+        tie(nibbler, tmp) = parse_body(nibbler);
+        nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    } catch(ScribbleErr& e) {
+        nibbler.logErr(e);
+    }
 
     AST_Node res(NODE_TYPE::START_FUNC);
     push_children(res, {tmp});
@@ -86,9 +90,13 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
         throw ScribbleErr{tmp.tok->line, tmp.tok->start_col, "UPDATE", ERR_TYPE::EXPECTED};
     nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
 
-    nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
-    tie(nibbler, tmp) = parse_body(nibbler);
-    nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    try {
+        nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
+        tie(nibbler, tmp) = parse_body(nibbler);
+        nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
+    } catch(ScribbleErr &e) {
+        nibbler.logErr(e);
+    }
 
     AST_Node res(NODE_TYPE::UPDATE_FUNC);
     push_children(res, {tmp});
@@ -98,10 +106,10 @@ AST_Nib_Pair_t parse_update_func(Nibbler nibbler) {
 
 //parser functions
 
-// ('num' | 'float' | 'string' | CLASS_NAME) , [arr_index]
+// ('num' | 'float' | 'bool' | 'string' | CLASS_NAME) , [arr_index]
 AST_Nib_Pair_t parse_vartype(Nibbler nibbler) {
     AST_Node vartype, index;
-    tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
+    tie(nibbler, vartype) = alt_types(nibbler, {TOK_TYPE::NUMBER_TYPE, TOK_TYPE::FLOAT_TYPE, TOK_TYPE::BOOL_TYPE, TOK_TYPE::STRING_TYPE, TOK_TYPE::IDENTIFIER});
     tie(nibbler, index) = opt(nibbler, parse_arr_index);
 
     vartype.type = NODE_TYPE::VAR_TYPE;
@@ -309,12 +317,12 @@ AST_Nib_Pair_t parse_arguments(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// 'return' , expression
+// 'return' , [expression]
 AST_Nib_Pair_t parse_return_statement(Nibbler nibbler) {
     AST_Node returnExpr;
 
     nibbler = require(nibbler, TOK_TYPE::RETURN).first;
-    tie(nibbler, returnExpr) = parse_expression(nibbler);
+    tie(nibbler, returnExpr) = opt(nibbler, parse_expression);
 
     AST_Node res(NODE_TYPE::RETURN_STATEMENT);
     push_children(res, {returnExpr});
@@ -329,14 +337,15 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
     tie(nibbler, body_children) = many_0(nibbler, [&](Nibbler n) {
         AST_Node res;
 
-        tie(nibbler, res) = alt(nibbler, {
-            parse_variable_def, 
+        tie(n, res) = alt(n, {
+            parse_function_call,
+            parse_variable_def,
             parse_variable_assign, 
             parse_branch, 
             parse_loop, 
             parse_variable_reference,
             parse_return_statement});
-        nibbler = opt(nibbler, TOK_TYPE::SEMICOLON).first;
+        n = opt(n, TOK_TYPE::SEMICOLON).first;
 
         return (AST_Nib_Pair_t){n, res};
     });
@@ -355,7 +364,7 @@ AST_Nib_Pair_t parse_branch(Nibbler nibbler) {
     node_vec_t ifElseNodes;
 
     tie(nibbler, ifNode) = parse_branch_if(nibbler);
-    tie(nibbler, ifElseNodes) = many_0(nibbler, parse_branch_if_else);
+    tie(nibbler, ifElseNodes) = many_0(nibbler, parse_branch_else_if);
     tie(nibbler, elseNode) = opt(nibbler, parse_branch_else);
 
     AST_Node res(NODE_TYPE::BRANCH);
@@ -382,17 +391,17 @@ AST_Nib_Pair_t parse_branch_if(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// 'if else' , expression , '{' , body , '}'
-AST_Nib_Pair_t parse_branch_if_else(Nibbler nibbler) {
+// 'else if' , expression , '{' , body , '}'
+AST_Nib_Pair_t parse_branch_else_if(Nibbler nibbler) {
     AST_Node expression, body;
 
-    nibbler = require(nibbler, TOK_TYPE::IF_ELSE).first;
+    nibbler = require(nibbler, TOK_TYPE::ELSE_IF).first;
     tie(nibbler, expression) = parse_expression(nibbler);
     nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
     tie(nibbler, body) = parse_body(nibbler);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
-    AST_Node res(NODE_TYPE::BRANCH_IF_ELSE);
+    AST_Node res(NODE_TYPE::BRANCH_ELSE_IF);
     push_children(res, {expression, body});
 
     return {nibbler, res};
@@ -407,7 +416,7 @@ AST_Nib_Pair_t parse_branch_else(Nibbler nibbler) {
     tie(nibbler, body) = parse_body(nibbler);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
-    AST_Node res(NODE_TYPE::LOOP_REPEAT);
+    AST_Node res(NODE_TYPE::BRANCH_ELSE);
     push_children(res, {body});
 
     return {nibbler, res};
@@ -541,8 +550,14 @@ AST_Nib_Pair_t parse_exp_not(Nibbler nibbler) {
 //variable_reference | literal | '(' , expression , ')' | function_call
 AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
     return alt(nibbler, {
+                [&](Nibbler n){
+                    AST_Node primary;
+                    tie(n, primary) = alt_types(n, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE});
+                    primary.type = NODE_TYPE::EXP_PRIMARY;
+                    
+                    return (AST_Nib_Pair_t){n, primary}; 
+                },
                 parse_variable_reference, 
-                [&](Nibbler n){ return alt_types(nibbler, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE}); },
                 [&](Nibbler n){
                     AST_Node expr;
                     n = require(n, TOK_TYPE::OPEN_PAREN).first;
@@ -565,8 +580,8 @@ AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair
         AST_Node second;
         tie(n, second) = expression_seg(n);
         
-        symbol.children.push_back(first);
-        symbol.children.push_back(second);
+        symbol.children.push_back(make_shared<AST_Node>(first));
+        symbol.children.push_back(make_shared<AST_Node>(second));
         symbol.type = out_type;
         first = symbol; //return this symbol to join the two segments
 
@@ -585,7 +600,7 @@ AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
         tie(n, tmp) = alt(n, {parse_function_call, parse_identifier});
         n = require(n, TOK_TYPE::DOT).first;
 
-        tmp.children.push_back(children);
+        tmp.children.push_back(make_shared<AST_Node>(children));
         children = tmp;
 
         return n;
@@ -643,6 +658,8 @@ AST_Nib_Pair_t require(Nibbler nibbler, TOK_TYPE type) {
             case TOK_TYPE::STRING_LITERAL:
             case TOK_TYPE::INT_LITERAL:
             case TOK_TYPE::FLOAT_LITERAL:
+            case TOK_TYPE::TRUE:
+            case TOK_TYPE::FALSE:
                 tmp.type = NODE_TYPE::EXP_PRIMARY;
                 break;
 
@@ -719,12 +736,13 @@ Nibbler many_0_lambda(Nibbler nibbler, std::function< Nibbler(Nibbler) > func) {
 void push_children(AST_Node &parent, vector<AST_Node> children, bool ignoreNon) {
     for(AST_Node &c : children) {
         if(ignoreNon && c.type == NODE_TYPE::NON) continue;
-        parent.children.push_back(c);
+        parent.children.push_back(make_shared<AST_Node>(c));
     }
 }
 
 //define the Nibbler helper class
 tok_vec_t* Nibbler::tokens = nullptr;
+vector<ScribbleErr> Nibbler::errs;
 
 Nibbler::Nibbler(tok_vec_t* tokens, size_t pos) {
     Nibbler::tokens = tokens;
@@ -738,4 +756,12 @@ Nibbler::Nibbler(size_t pos) {
 Token Nibbler::next() {
     if(pos >= tokens->size()) throw (ScribbleErr) {0, 0, "", ERR_TYPE::EOT};
     return tokens->at(pos++);
+}
+
+void Nibbler::logErr(ScribbleErr &e) {
+    Nibbler::errs.push_back(e);
+}
+
+vector<ScribbleErr> Nibbler::getErrs() {
+    return Nibbler::errs;
 }

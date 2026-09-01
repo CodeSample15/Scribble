@@ -4,23 +4,23 @@
 #include <memory>
 #include "lex.hpp"
 
-enum NODE_TYPE {
+enum NODE_TYPE : uint8_t {
     PROGRAM,
-    IMPORT_STATEMENT, CORE_FUNCTION, FUNCTION_DEF, VARIABLE_DEF, VARIABLE_ASSIGN,
+    IMPORT_STATEMENT, VARIABLE_DEF, VARIABLE_ASSIGN,
     VARIABLE_REFERENCE, BUILT_IN_VAR_REFERENCE, NORMAL_VAR_REFERENCE,
     ARR_INDEX,
-    START_FUNC, UPDATE_FUNC,
+    CORE_FUNCTION, START_FUNC, UPDATE_FUNC,
 
     VAR_TYPE,
     ASSIGN_OP,
 
     BODY, BRANCH,
 
-    BRANCH_IF, BRANCH_IF_ELSE, BRANCH_ELSE,
+    BRANCH_IF, BRANCH_ELSE_IF, BRANCH_ELSE,
 
     LOOP_WHILE, LOOP_REPEAT,
 
-    FUNCTION_MODIFIER, FUNCTION_CALL, ARGUMENTS, PARAMETERS,
+    FUNCTION_DEF, FUNCTION_MODIFIER, FUNCTION_CALL, ARGUMENTS, PARAMETERS,
     RETURN_STATEMENT,
 
     IDENT,
@@ -32,9 +32,9 @@ enum NODE_TYPE {
 };
 
 struct AST_Node {
-    NODE_TYPE type;
     std::shared_ptr<Token> tok;
-    std::vector<AST_Node> children;
+    std::vector<std::shared_ptr< AST_Node >> children;
+    NODE_TYPE type;
 
     AST_Node() : tok(nullptr) {
         this->type=NON;

@@ -10,22 +10,23 @@ enum TOK_TYPE {
 
     //keywords
     IF,                             // if
-    IF_ELSE,                        // if else
+    ELSE_IF,                        // else if
     ELSE,                           // else
 
     WHILE,                          // while
     REPEAT,                         // repeat
 
-    TRUE,                           //true
-    FALSE,                          //false
+    TRUE,                           // true
+    FALSE,                          // false
 
-    RETURN,                         //return
+    RETURN,                         // return
 
     FUNCTION_DEFINE,                // fun
 
     //built in types
     NUMBER_TYPE,                    // num
     FLOAT_TYPE,                     // float
+    BOOL_TYPE,                      // bool
     STRING_TYPE,                    // string
 
     //values
