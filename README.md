@@ -24,7 +24,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Unit tests
 [X] Parser
  - [X] Unit tests
-[] Interpreter
+[X] Interpreter (version 1)
  - [ ] Unit tests
 
 ## Language Grammar
