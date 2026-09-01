@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <functional>
 #include "utils/AST.hpp"
 
 #define SCRIBBLE_NUM_REP int32_t
@@ -46,6 +47,7 @@ namespace Interpreter {
     extern std::shared_ptr<AST_Node> StartFunction;
     extern std::shared_ptr<AST_Node> UpdateFunction;
     extern std::unordered_map<std::string, std::shared_ptr<AST_Node>> Functions;
+    extern unordered_map<std::string, function<Interpreter::AnyValue(std::vector<Interpreter::AnyValue>)>> BuiltInFunctions;
     extern std::unordered_map<std::string, EVAL_RES_TYPE> ValidDTypes;
 
     void InitRuntime();

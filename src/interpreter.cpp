@@ -13,6 +13,7 @@ SymbolTableValues Interpreter::BuiltInVariables;
 shared_ptr<AST_Node> Interpreter::StartFunction = nullptr;
 shared_ptr<AST_Node> Interpreter::UpdateFunction = nullptr;
 unordered_map<string, shared_ptr<AST_Node>> Interpreter::Functions;
+unordered_map<string, std::function<AnyValue(vector<AnyValue>)>> Interpreter::BuiltInVariables;
 unordered_map<string, EVAL_RES_TYPE> Interpreter::ValidDTypes;
 
 // Helper functions
