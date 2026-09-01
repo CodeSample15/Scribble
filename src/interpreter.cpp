@@ -102,7 +102,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             if(returnContext == nullptr) {
                 // Store in global memory (we're not in a function)
-                // TODO: global memory space will have to be allocated once the total number of global variables is known
+                for(auto& i : idents) {
+                    GlobalValues.push_back({val, i, make_shared<mutex>()});
+                }
             }
             else {
                 // Store in the memory table (we're in a function)

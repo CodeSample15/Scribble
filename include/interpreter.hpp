@@ -30,9 +30,9 @@ namespace Interpreter {
     };
 
     struct SharedSymbol {
-        std::string               name;
-        std::shared_ptr<AnyValue> value;
-        std::mutex                symbol_mutex;
+        AnyValue                    value;
+        std::string                 name;
+        std::shared_ptr<std::mutex> symbol_mutex;
     };
 
     struct SymbolTable {
