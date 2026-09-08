@@ -87,6 +87,13 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Function call 4", [&]{ test_return_type("test(1.32, \"hello\")", parse_function_call, NODE_TYPE::FUNCTION_CALL); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
+
+    tests.emplace_back("PARSE: Built in function call 1", [&]{ test_return_type(":test(1.32, \"hello\")", parse_built_in_function_call, NODE_TYPE::BUILT_IN_FUNCTION_CALL); });
+    tests.emplace_back("PARSE: Built in function call 2", [&]{ test_return_type(":print(\"hello world\")", parse_built_in_function_call, NODE_TYPE::BUILT_IN_FUNCTION_CALL); });
+    tests.emplace_back("PARSE: Built in function call 3", [&]{ test_return_type(":f()", parse_built_in_function_call, NODE_TYPE::BUILT_IN_FUNCTION_CALL); });
+    tests.emplace_back("PARSE: Built in function call 4", [&]{ test_return_type(":do_something(1, 2, 3, 4)", parse_built_in_function_call, NODE_TYPE::BUILT_IN_FUNCTION_CALL); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
     
     tests.emplace_back("PARSE: Parameters 1", [&]{ test_return_type("float first", parse_parameters, NODE_TYPE::PARAMETERS); });
     tests.emplace_back("PARSE: Parameters 2", [&]{ test_return_type("float first, string second", parse_parameters, NODE_TYPE::PARAMETERS); });
