@@ -11,6 +11,7 @@
 #define SCRIBBLE_FLOAT_REP double
 
 #define SymbolTableValues std::vector< std::pair< std::string, Interpreter::AnyValue > >
+#define PreMadeFunctions std::unordered_map<std::string, std::function<Interpreter::AnyValue(std::vector<Interpreter::AnyValue>)>>
 
 namespace Interpreter {
     enum EVAL_RES_TYPE : uint8_t {
@@ -47,7 +48,7 @@ namespace Interpreter {
     extern std::shared_ptr<AST_Node> StartFunction;
     extern std::shared_ptr<AST_Node> UpdateFunction;
     extern std::unordered_map<std::string, std::shared_ptr<AST_Node>> Functions;
-    extern unordered_map<std::string, function<Interpreter::AnyValue(std::vector<Interpreter::AnyValue>)>> BuiltInFunctions;
+    extern PreMadeFunctions BuiltInFunctions;
     extern std::unordered_map<std::string, EVAL_RES_TYPE> ValidDTypes;
 
     void InitRuntime();

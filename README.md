@@ -25,6 +25,8 @@ There are countless ways to develop video games and graphical applications. Howe
 [X] Parser
  - [X] Unit tests
 [X] Interpreter (version 1)
+ - [ ] Built in function support
+ - [ ] First "Hello World"
  - [ ] Unit tests
 
 ## Language Grammar
@@ -46,7 +48,7 @@ function_def        = [function_modifier] , 'fun' , identifier , '(' , [paramete
 function_modifier   = '[' , VALID_FUNCTION_MODIFIER , {',' , VALID_FUNCTION_MODIFIER} , ']'
 
 # function_call
-function_call       =  chained_identifier , '(' , [arguments] , ')'
+function_call       = chained_identifier , '(' , [arguments] , ')'
 
 parameters          = VARTYPE , identifier , {',' , VARTYPE , identifier}
 arguments           = expression , {',' , expression}

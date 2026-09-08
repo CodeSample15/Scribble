@@ -44,7 +44,7 @@ void Interpreter::InitRuntime() {
         {"Object", EVAL_RES_TYPE::Object},
     };
 
-    BuiltIn::init(BuiltInVariables);
+    BuiltIn::init(BuiltInVariables, BuiltInFunctions);
 }
 
 AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> returnContext, shared_ptr<SymbolTable> memTable) {
