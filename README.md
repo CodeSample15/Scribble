@@ -26,8 +26,8 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Unit tests
 [ ] Interpreter
  - [X] General outline + interpreting expressions
- - [ ] Built in function support
- - [ ] First "Hello World"
+ - [X] Built in function support
+ - [X] First "Hello World"
  - [ ] Add new AST nodes to debug logger
  - [ ] Unit tests
 
