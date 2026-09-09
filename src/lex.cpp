@@ -95,7 +95,7 @@ TOK_TYPE handle_digit(file_reader::file_reader &fr, string &lexeme) {
 }
 
 TOK_TYPE handle_string(file_reader::file_reader &fr, string &lexeme, char start) {
-    lexeme += fr.next();
+    fr.next();
     
     while(!fr.empty() && fr.peek() != start && fr.peek() != '\n') {
         lexeme += fr.next();
@@ -103,7 +103,7 @@ TOK_TYPE handle_string(file_reader::file_reader &fr, string &lexeme, char start)
 
     if(fr.empty() || fr.peek() == '\n') throw (ScribbleErr) { fr.loc.row, fr.loc.col, "", ERR_TYPE::UNCLOSED_QUOTE };
 
-    lexeme += fr.next(); //get the last quote added to the lexeme
+    fr.next(); //get the last quote added to the lexeme
 
     return TOK_TYPE::STRING_LITERAL;
 }

@@ -272,6 +272,22 @@ AST_Nib_Pair_t parse_function_call(Nibbler nibbler) {
     return {nibbler, res};
 }
 
+// ':' , identifier , '(' , [arguments] , ')'
+AST_Nib_Pair_t parse_built_in_function_call(Nibbler nibbler) {
+    AST_Node identifier, arguments;
+
+    nibbler = require(nibbler, TOK_TYPE::SPECIAL_FUNCTION_PREFIX).first;
+    tie(nibbler, identifier) = parse_identifier(nibbler);
+    nibbler = require(nibbler, TOK_TYPE::OPEN_PAREN).first;
+    tie(nibbler, arguments) = opt(nibbler, parse_arguments);
+    nibbler = require(nibbler, TOK_TYPE::CLOSE_PAREN).first;
+
+    AST_Node res(NODE_TYPE::BUILT_IN_FUNCTION_CALL);
+    push_children(res, {identifier, arguments});
+
+    return {nibbler, res};
+}
+
 // VARTYPE , identifier , {',' , VARTYPE , identifier}
 AST_Nib_Pair_t parse_parameters(Nibbler nibbler) {
     AST_Node vartype, identifier;
@@ -338,6 +354,7 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
         AST_Node res;
 
         tie(n, res) = alt(n, {
+            parse_built_in_function_call,
             parse_function_call,
             parse_variable_def,
             parse_variable_assign, 

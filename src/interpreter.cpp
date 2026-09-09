@@ -13,6 +13,7 @@ SymbolTableValues Interpreter::BuiltInVariables;
 shared_ptr<AST_Node> Interpreter::StartFunction = nullptr;
 shared_ptr<AST_Node> Interpreter::UpdateFunction = nullptr;
 unordered_map<string, shared_ptr<AST_Node>> Interpreter::Functions;
+PreMadeFunctions Interpreter::BuiltInFunctions;
 unordered_map<string, EVAL_RES_TYPE> Interpreter::ValidDTypes;
 
 // Helper functions
@@ -43,7 +44,7 @@ void Interpreter::InitRuntime() {
         {"Object", EVAL_RES_TYPE::Object},
     };
 
-    BuiltIn::init(BuiltInVariables);
+    BuiltIn::init(BuiltInVariables, BuiltInFunctions);
 }
 
 AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> returnContext, shared_ptr<SymbolTable> memTable) {
@@ -179,6 +180,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::VARIABLE_REFERENCE: {
+            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL)
+                return eval(root->children[0], returnContext, memTable);
+
             string ident = root->children[0]->tok->lexeme;
             auto& memTablePtr = memTable;
 
@@ -348,6 +352,32 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
         }
 
+        case NODE_TYPE::BUILT_IN_FUNCTION_CALL: {
+            // get identifier
+            string ident = root->children[0]->tok->lexeme;
+
+            // evaluate args
+            vector<AnyValue> args;
+            if(root->children.size() > 1) {
+                for(auto &a : root->children[1]->children) {
+                    args.emplace_back(eval(a, returnContext, memTable));
+                }
+            }
+
+            // find target function
+            auto search = BuiltInFunctions.find(ident);
+            if(search == BuiltInFunctions.end())
+                throwScribbleError(root->children[0], "Built in function does not exist", ERR_TYPE::INVALID_FUN_CALL);
+
+            // call dat function
+            try {
+                return search->second(args);
+            } catch(ScribbleErr &e) {
+                throwScribbleError(root->children[0], e.msg, e.type);
+            }
+            break;
+        }
+
         case NODE_TYPE::RETURN_STATEMENT:
             if(root->children.size() > 0)
                 *returnContext = eval(root->children[0], returnContext, memTable);
@@ -458,11 +488,28 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue one = eval(root->children[0], returnContext, memTable);
             AnyValue two = eval(root->children[1], returnContext, memTable);
 
-            if(one.type == EVAL_RES_TYPE::String && one.type == two.type) {
+            if(one.type == EVAL_RES_TYPE::String || two.type == EVAL_RES_TYPE::String) {
                 if(root->tok->type == TOK_TYPE::MINUS)
                     throwScribbleError(root, "Cannot subtract strings", ERR_TYPE::INVALID_OPERATION);
 
-                string res = *(string*)one.value.get() + *(string*)two.value.get();
+                string res = "";
+                for(auto &t : {one, two}) {
+                    switch(t.type) {
+                        case EVAL_RES_TYPE::String:
+                            res += *(string*)t.value.get();
+                            break;
+                        case EVAL_RES_TYPE::Num:
+                            res += to_string(*(SCRIBBLE_NUM_REP*)t.value.get());
+                            break;
+                        case EVAL_RES_TYPE::Float:
+                            res += to_string(*(SCRIBBLE_FLOAT_REP*)t.value.get());
+                            break;
+                        default:
+                            throwScribbleError(root, "Unexpected type when combining strings", ERR_TYPE::BAD_TYPE);
+                            break;
+                    }
+                }
+
                 return AnyValue{{1}, make_shared<string>(res), EVAL_RES_TYPE::String};
             }
 
