@@ -13,7 +13,7 @@ SymbolTableValues Interpreter::BuiltInVariables;
 shared_ptr<AST_Node> Interpreter::StartFunction = nullptr;
 shared_ptr<AST_Node> Interpreter::UpdateFunction = nullptr;
 unordered_map<string, shared_ptr<AST_Node>> Interpreter::Functions;
-unordered_map<string, std::function<AnyValue(vector<AnyValue>)>> Interpreter::BuiltInVariables;
+PreMadeFunctions Interpreter::BuiltInFunctions;
 unordered_map<string, EVAL_RES_TYPE> Interpreter::ValidDTypes;
 
 // Helper functions
@@ -346,6 +346,32 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             if(funcReturnCtx != nullptr && funcReturnCtx->type != EVAL_RES_TYPE::None && funcReturnCtx->type != EVAL_RES_TYPE::RETURN)
                 return *funcReturnCtx;
 
+            break;
+        }
+
+        case NODE_TYPE::BUILT_IN_FUNCTION_CALL: {
+            // get identifier
+            string ident = root->children[0]->tok->lexeme;
+
+            // evaluate args
+            vector<AnyValue> args;
+            if(root->children.size() > 1) {
+                for(auto &a : root->children[1]->children) {
+                    args.emplace_back(eval(a, returnContext, memTable));
+                }
+            }
+
+            // find target function
+            auto search = BuiltInFunctions.find(ident);
+            if(search == BuiltInFunctions.end())
+                throwScribbleError(root->children[0], "Built in function does not exist", ERR_TYPE::INVALID_FUN_CALL);
+
+            // call dat function
+            try {
+                return search->second(args);
+            } catch(ScribbleErr &e) {
+                throwScribbleError(root->children[0], e.msg, e.type);
+            }
             break;
         }
 

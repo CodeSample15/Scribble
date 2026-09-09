@@ -9,6 +9,7 @@ using namespace Interpreter;
 
 // built in functions prototypes
 AnyValue BI_fun_print(vector<AnyValue>);
+AnyValue noValue();
 
 // helper prototypes
 void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyValue> &args);
@@ -30,6 +31,7 @@ void BuiltIn::update(SymbolTableValues &memory) {
 AnyValue BI_fun_print(vector<AnyValue> args) {
     assert_arg_types(PRINT_FUNC_NAME, {EVAL_RES_TYPE::String}, args);
     log(*(string*)args[0].value.get());
+    return noValue();
 }
 
 // define helper functions
@@ -52,4 +54,10 @@ void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyVal
             throw ScribbleErr{0,0, "Invalid call to '" + funName + "': Expected arguments of types <" + expectedTypes + ">", ERR_TYPE::INVALID_FUN_CALL};
         }
     }
+}
+
+AnyValue noValue() {
+    AnyValue t;
+    t.type = EVAL_RES_TYPE::None;
+    return t;
 }
