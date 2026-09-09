@@ -485,11 +485,28 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue one = eval(root->children[0], returnContext, memTable);
             AnyValue two = eval(root->children[1], returnContext, memTable);
 
-            if(one.type == EVAL_RES_TYPE::String && one.type == two.type) {
+            if(one.type == EVAL_RES_TYPE::String || two.type == EVAL_RES_TYPE::String) {
                 if(root->tok->type == TOK_TYPE::MINUS)
                     throwScribbleError(root, "Cannot subtract strings", ERR_TYPE::INVALID_OPERATION);
 
-                string res = *(string*)one.value.get() + *(string*)two.value.get();
+                string res = "";
+                for(auto &t : {one, two}) {
+                    switch(t.type) {
+                        case EVAL_RES_TYPE::String:
+                            res += *(string*)t.value.get();
+                            break;
+                        case EVAL_RES_TYPE::Num:
+                            res += to_string(*(SCRIBBLE_NUM_REP*)t.value.get());
+                            break;
+                        case EVAL_RES_TYPE::Float:
+                            res += to_string(*(SCRIBBLE_FLOAT_REP*)t.value.get());
+                            break;
+                        default:
+                            throwScribbleError(root, "Unexpected type when combining strings", ERR_TYPE::BAD_TYPE);
+                            break;
+                    }
+                }
+
                 return AnyValue{{1}, make_shared<string>(res), EVAL_RES_TYPE::String};
             }
 

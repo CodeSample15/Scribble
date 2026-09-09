@@ -1,7 +1,13 @@
 num x = 3
 
 :START: {
-    :print("Hello World")
+    :print("Hello World!")
+
+    num count
+    repeat 3 {
+        :print("Count: '" + count + "'")
+        count += 1
+    }
     return $JOY_Y
 }
 
