@@ -180,6 +180,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::VARIABLE_REFERENCE: {
+            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL)
+                return eval(root->children[0], returnContext, memTable);
+
             string ident = root->children[0]->tok->lexeme;
             auto& memTablePtr = memTable;
 

@@ -8,6 +8,8 @@ num x = 3
         :print("Count: '" + count + "'")
         count += 1
     }
+
+    :print("" + foo(2,3))
     return $JOY_Y
 }
 
