@@ -451,20 +451,29 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue two = eval(root->children[1], returnContext, memTable);
             bool res;
 
-            if(root->tok->type == TOK_TYPE::GREATER_THAN)
-                res = extractNumValue(one, root->children[0]) > extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::GREATER_THAN_EQUAL)
-                res = extractNumValue(one, root->children[0]) >= extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::LESS_THAN)
-                res = extractNumValue(one, root->children[0]) < extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::LESS_THAN_EQUAL)
-                res = extractNumValue(one, root->children[0]) <= extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::CMP_EQUALS)
-                res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS)
-                res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
-            else
-                throwScribbleError(root, "CMP symbol not found", ERR_TYPE::INVALID_SYMBOL);
+            switch(root->tok->type) {
+                case TOK_TYPE::GREATER_THAN:
+                    res = extractNumValue(one, root->children[0]) > extractNumValue(two, root->children[1]);
+                    break;
+                case TOK_TYPE::GREATER_THAN_EQUAL:
+                    res = extractNumValue(one, root->children[0]) >= extractNumValue(two, root->children[1]);
+                    break;
+                case TOK_TYPE::LESS_THAN:
+                    res = extractNumValue(one, root->children[0]) < extractNumValue(two, root->children[1]);
+                    break;
+                case TOK_TYPE::LESS_THAN_EQUAL:
+                    res = extractNumValue(one, root->children[0]) <= extractNumValue(two, root->children[1]);
+                    break;
+                case TOK_TYPE::CMP_EQUALS:
+                    res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
+                    break;
+                case TOK_TYPE::CMP_NOT_EQUALS:
+                    res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+                    break;
+                default:
+                    throwScribbleError(root, "CMP symbol not found", ERR_TYPE::INVALID_SYMBOL);
+                    break;
+            }
 
             return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
         }
