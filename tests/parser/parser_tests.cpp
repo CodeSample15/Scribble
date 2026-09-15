@@ -164,4 +164,6 @@ void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
     tests.emplace_back("PARSE: Program", [&]{ test_return_type(":START: { int i=0; } :UPDATE: { i++; }", parse_program, NODE_TYPE::PROGRAM); });
+
+    tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 }

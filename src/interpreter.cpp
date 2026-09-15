@@ -208,8 +208,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::BODY:
-            for(auto& node : root->children)
+            for(auto& node : root->children) {
+                if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None) 
+                    return *returnContext;
+
                 eval(node, returnContext, memTable);
+            }
             break;
 
         case NODE_TYPE::BRANCH:

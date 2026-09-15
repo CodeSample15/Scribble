@@ -1,0 +1,7 @@
+fun test_addition() {
+    if 3+2 == 5 {
+        return 0
+    } else {
+        return 1
+    }
+}
