@@ -71,13 +71,14 @@ void test_function(string funName, shared_ptr<AST_Node> program) {
 }
 
 void load_interpreter_tests(vector<test_t> &tests) {
-    shared_ptr<AST_Node> program = load_from_file("../interpreter/tests.sb");
+    shared_ptr<AST_Node> program = load_from_file("../interpreter/tests.sb"); // TODO: file should be loaded smarter so that the executable can be ran anywhere
     Interpreter::InitRuntime();
 
     tests.emplace_back("INTERPRETER: equations", [=]{ test_function("test_equations", program); });
     tests.emplace_back("INTERPRETER: built in functions", [=]{ test_function("test_built_in_functions", program); });
     tests.emplace_back("INTERPRETER: branching", [=]{ test_function("test_branching", program); });
     tests.emplace_back("INTERPRETER: comments", [=]{ test_function("test_comments", program); });
+    tests.emplace_back("INTERPRETER: loops", [=]{ test_function("test_loops", program); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 }

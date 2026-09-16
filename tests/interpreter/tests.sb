@@ -90,3 +90,26 @@ fun test_comments() {
     # Watermelon
     return 0
 }
+
+fun test_loops() {
+    num i=0
+    repeat 100 {
+        i += 1
+    }
+
+    if i != 100 {
+        return 1
+    }
+
+    while i > 0 {
+        repeat 5 {
+            i -= 1
+        }
+    }
+
+    if i > 0 {
+        return 1
+    }
+
+    return 0
+}
