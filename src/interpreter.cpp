@@ -231,6 +231,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                         break;
                     }
                     case NODE_TYPE::BRANCH_ELSE:
+                        eval(b->children[0], returnContext, newScopeWithParent(memTable));
                         return AnyValue{};
                     default:
                         log("Interpreter: Unexpected node in branch -> '" + AST_node_type_to_string(b->type) + "'");

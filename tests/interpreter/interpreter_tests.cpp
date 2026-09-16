@@ -75,6 +75,9 @@ void load_interpreter_tests(vector<test_t> &tests) {
     Interpreter::InitRuntime();
 
     tests.emplace_back("INTERPRETER: equations", [=]{ test_function("test_equations", program); });
+    tests.emplace_back("INTERPRETER: built in functions", [=]{ test_function("test_built_in_functions", program); });
+    tests.emplace_back("INTERPRETER: branching", [=]{ test_function("test_branching", program); });
+    tests.emplace_back("INTERPRETER: comments", [=]{ test_function("test_comments", program); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 }
