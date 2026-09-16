@@ -539,12 +539,14 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_MULT: {
             AnyValue one = eval(root->children[0], returnContext, memTable);
             AnyValue two = eval(root->children[1], returnContext, memTable);
-            double res;
+            double res = 0;
 
             if(root->tok->lexeme == "*")
                 res = extractNumValue(one, root->children[0]) * extractNumValue(two, root->children[1]);
-            else
+            else if(root->tok->lexeme == "/")
                 res = extractNumValue(one, root->children[0]) / extractNumValue(two, root->children[1]);
+            else if(root->tok->lexeme == "%")
+                res = (SCRIBBLE_NUM_REP)extractNumValue(one, root->children[0]) % (SCRIBBLE_NUM_REP)extractNumValue(two, root->children[1]);
 
             auto casted = castNumValue(res, one.type, two.type);
             return AnyValue{{1}, casted.first, casted.second};
