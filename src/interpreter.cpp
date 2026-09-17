@@ -441,10 +441,18 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue two = eval(root->children[1], returnContext, memTable);
             bool res;
 
-            if(root->tok->type == TOK_TYPE::CMP_EQUALS)
-                res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS)
-                res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+            if(root->tok->type == TOK_TYPE::CMP_EQUALS) {
+                if(one.type == EVAL_RES_TYPE::String && two.type == EVAL_RES_TYPE::String)
+                    res = *(string*)one.value.get() == *(string*)two.value.get();
+                else
+                    res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
+            }
+            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS) {
+                if(one.type == EVAL_RES_TYPE::String && two.type == EVAL_RES_TYPE::String)
+                    res = *(string*)one.value.get() != *(string*)two.value.get();
+                else
+                    res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+            }
             else
                 throwScribbleError(root, "EQ symbol not found", ERR_TYPE::INVALID_SYMBOL);
 
