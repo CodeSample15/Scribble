@@ -89,7 +89,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // get every new variable name from the second child onwards
             size_t i=1;
             for(; i<root->children.size() && root->children[i]->type == NODE_TYPE::IDENT; i++) {
-                idents.push_back(root->children[1]->tok->lexeme);
+                idents.push_back(root->children[i]->tok->lexeme);
             }
 
             // get the assigned value or the default vale for the new variable
