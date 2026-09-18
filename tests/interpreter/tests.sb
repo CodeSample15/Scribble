@@ -54,6 +54,21 @@ fun test_equations() {
         return 1
     }
 
+    if 2**2 != 4 {
+        :print("12")
+        return 1
+    }
+
+    if 3**1 != 3 {
+        :print("13")
+        return 1
+    }
+
+    if 7**2 != 49 {
+        :print("14")
+        return 1
+    }
+
     return 0
 }
 
