@@ -148,3 +148,78 @@ fun test_variables() {
 
     return 0
 }
+
+fun test_string_concat() {
+    string test = "hi"
+
+    test = test + 4
+    if test != "hi4" {
+        return 1
+    }
+
+    test += "ever"
+    if test != "hi4ever" {
+        return 1
+    }
+
+    test += test
+    if test != "hi4everhi4ever" {
+        return 1
+    }
+
+    return 0
+}
+
+fun test_string_assign() {
+    string test
+
+    test = "hi"
+    if test != "hi" {
+        return 1
+    }
+
+    test = ""+4
+    if test != "4" {
+        return 1
+    }
+
+    test = "hi " + "there"
+    if test != "hi there" {
+        return 1
+    }
+
+    test = 0 + "1" + "2" + "3" + 4 + "5"
+    if test != "012345" {
+        return 1
+    }
+
+    return 0
+}
+
+fun test_string_compare() {
+    string one, two
+
+    if one != two {
+        return 1
+    }
+
+    one = "one"
+    two = "two"
+    if one == two {
+        :print("he2re")
+        return 1
+    }
+
+    one = "123"
+    two = "123"
+    if one != two {
+        return 1
+    }
+
+    one = "1234"
+    if one != two + 4 {
+        return 1
+    }
+
+    return 0
+}

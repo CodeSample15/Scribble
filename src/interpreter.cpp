@@ -24,6 +24,7 @@ void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr
 bool isPrimitive(EVAL_RES_TYPE t); // returns true if the passed type is a primitive type
 void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
+shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
@@ -110,7 +111,11 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             else {
                 // Store in the memory table (we're in a function)
                 for(auto& i : idents) {
-                    memTable->values.emplace_back(pair<string, AnyValue>{i, val});
+                    AnyValue tmp;
+                    tmp.dimension = val.dimension;
+                    tmp.type = val.type;
+                    tmp.value = duplicateValue(val.type, val.value);
+                    memTable->values.emplace_back(pair<string, AnyValue>{i, tmp});
                 }
             }
             break;
@@ -159,6 +164,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     }
                 } else {
                     // TODO: cast non-primitive and assign
+                    if(targetRef.type == EVAL_RES_TYPE::String) {
+                        *(string*)targetRef.value.get() = *(string*)assignValue.value.get();
+                    }
                 }
             }
             else {
@@ -658,7 +666,29 @@ shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
         case EVAL_RES_TYPE::Object:
             return make_shared<int>(0); // Trying to avoid the existence of nullptrs
         default:
-            break; // custom values
+            break; // TODO: custom values
+    }
+
+    return make_shared<int>(0);
+}
+
+// Make a duplicate of a variable
+shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
+    switch(type) {
+        case EVAL_RES_TYPE::None:
+            return make_shared<int>(0);
+        case EVAL_RES_TYPE::Num:
+            return make_shared<SCRIBBLE_NUM_REP>(*(SCRIBBLE_NUM_REP*)val.get());
+        case EVAL_RES_TYPE::Float:
+            return make_shared<SCRIBBLE_FLOAT_REP>(*(SCRIBBLE_FLOAT_REP*)val.get());
+        case EVAL_RES_TYPE::Bool:
+            return make_shared<bool>(*(bool*)val.get());
+        case EVAL_RES_TYPE::String:
+            return make_shared<string>(*(string*)val.get());
+        case EVAL_RES_TYPE::Object:
+            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
+        default:
+            break; // TODO: custom values
     }
 
     return make_shared<int>(0);

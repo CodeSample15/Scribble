@@ -80,6 +80,9 @@ void load_interpreter_tests(vector<test_t> &tests) {
     tests.emplace_back("INTERPRETER: comments", [=]{ test_function("test_comments", program); });
     tests.emplace_back("INTERPRETER: loops", [=]{ test_function("test_loops", program); });
     tests.emplace_back("INTERPRETER: variables", [=]{ test_function("test_variables", program); });
+    tests.emplace_back("INTERPRETER: strings - concatenation", [=]{ test_function("test_string_concat", program); });
+    tests.emplace_back("INTERPRETER: strings - assignment", [=]{ test_function("test_string_assign", program); });
+    tests.emplace_back("INTERPRETER: strings - compare", [=]{ test_function("test_string_compare", program); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 }
