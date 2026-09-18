@@ -28,8 +28,12 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] General outline + interpreting expressions
  - [X] Built in function support
  - [X] First "Hello World"
- - [ ] Add new AST nodes to debug logger
+ - [X] Add new AST nodes to debug logger
  - [X] Unit tests
+ - [ ] Array support
+ - [ ] Object support
+[ ] Graphics module
+[ ] Input module
 
 ## Language Grammar
 ```EBNF

@@ -29,6 +29,7 @@ string tok_type_to_string(TOK_TYPE tok) {
         case REPEAT: return "repeat";
         case TRUE: return "true";
         case FALSE: return "false";
+        case RETURN: return "return";
         case FUNCTION_DEFINE: return "function define";
         case NUMBER_TYPE: return "num type";
         case FLOAT_TYPE: return "float type";
@@ -45,11 +46,13 @@ string tok_type_to_string(TOK_TYPE tok) {
         case OPEN_BRACKET: return "open bracket";
         case CLOSE_BRACKET: return "close bracket";
         case SEMICOLON: return "semicolon";
+        case DOT: return "dot";
         case COMMA: return "comma";
         case PLUS: return "plus";
         case MINUS: return "minus";
         case SLASH: return "slash";
         case STAR: return "star";
+        case PERCENT: return "percent";
         case BAR: return "bar";
         case UP_ARROW: return "up arrow";
         case GREATER_THAN: return "greater than";
@@ -104,6 +107,7 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
         case LOOP_REPEAT: return "loop repeat";
         case FUNCTION_MODIFIER: return "function modifier";
         case FUNCTION_CALL: return "function call";
+        case BUILT_IN_FUNCTION_CALL: return "built in function call";
         case ARGUMENTS: return "arguments";
         case PARAMETERS: return "parameters";
         case IDENT: return "identifier";
@@ -120,6 +124,7 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
         case EXP_POW: return "power";
         case EXP_NOT: return "not";
         case EXP_PRIMARY: return "primary eq";
+        case RETURN_STATEMENT: return "return";
         case NON: return "NON";
 
         default: return "WARNING: NO TYPE TO STRING";

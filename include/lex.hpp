@@ -41,7 +41,7 @@ enum TOK_TYPE {
     OPEN_BRACKET, CLOSE_BRACKET,    // []
 
     SEMICOLON,                      // ;
-    DOT,
+    DOT,                            // .
     COMMA,                          // ,
     PLUS,                           // +
     MINUS,                          // -
