@@ -29,7 +29,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Built in function support
  - [X] First "Hello World"
  - [ ] Add new AST nodes to debug logger
- - [ ] Unit tests
+ - [X] Unit tests
 
 ## Language Grammar
 ```EBNF
