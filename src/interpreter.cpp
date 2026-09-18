@@ -24,6 +24,7 @@ void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr
 bool isPrimitive(EVAL_RES_TYPE t); // returns true if the passed type is a primitive type
 void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
+shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
@@ -89,7 +90,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // get every new variable name from the second child onwards
             size_t i=1;
             for(; i<root->children.size() && root->children[i]->type == NODE_TYPE::IDENT; i++) {
-                idents.push_back(root->children[1]->tok->lexeme);
+                idents.push_back(root->children[i]->tok->lexeme);
             }
 
             // get the assigned value or the default vale for the new variable
@@ -110,7 +111,11 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             else {
                 // Store in the memory table (we're in a function)
                 for(auto& i : idents) {
-                    memTable->values.emplace_back(pair<string, AnyValue>{i, val});
+                    AnyValue tmp;
+                    tmp.dimension = val.dimension;
+                    tmp.type = val.type;
+                    tmp.value = duplicateValue(val.type, val.value);
+                    memTable->values.emplace_back(pair<string, AnyValue>{i, tmp});
                 }
             }
             break;
@@ -159,6 +164,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     }
                 } else {
                     // TODO: cast non-primitive and assign
+                    if(targetRef.type == EVAL_RES_TYPE::String) {
+                        *(string*)targetRef.value.get() = *(string*)assignValue.value.get();
+                    }
                 }
             }
             else {
@@ -208,8 +216,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::BODY:
-            for(auto& node : root->children)
+            for(auto& node : root->children) {
+                if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None) 
+                    return *returnContext;
+
                 eval(node, returnContext, memTable);
+            }
             break;
 
         case NODE_TYPE::BRANCH:
@@ -227,6 +239,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                         break;
                     }
                     case NODE_TYPE::BRANCH_ELSE:
+                        eval(b->children[0], returnContext, newScopeWithParent(memTable));
                         return AnyValue{};
                     default:
                         log("Interpreter: Unexpected node in branch -> '" + AST_node_type_to_string(b->type) + "'");
@@ -436,10 +449,18 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue two = eval(root->children[1], returnContext, memTable);
             bool res;
 
-            if(root->tok->type == TOK_TYPE::CMP_EQUALS)
-                res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
-            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS)
-                res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+            if(root->tok->type == TOK_TYPE::CMP_EQUALS) {
+                if(one.type == EVAL_RES_TYPE::String && two.type == EVAL_RES_TYPE::String)
+                    res = *(string*)one.value.get() == *(string*)two.value.get();
+                else
+                    res = extractNumValue(one, root->children[0]) == extractNumValue(two, root->children[1]);
+            }
+            else if(root->tok->type == TOK_TYPE::CMP_NOT_EQUALS) {
+                if(one.type == EVAL_RES_TYPE::String && two.type == EVAL_RES_TYPE::String)
+                    res = *(string*)one.value.get() != *(string*)two.value.get();
+                else
+                    res = extractNumValue(one, root->children[0]) != extractNumValue(two, root->children[1]);
+            }
             else
                 throwScribbleError(root, "EQ symbol not found", ERR_TYPE::INVALID_SYMBOL);
 
@@ -535,12 +556,14 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_MULT: {
             AnyValue one = eval(root->children[0], returnContext, memTable);
             AnyValue two = eval(root->children[1], returnContext, memTable);
-            double res;
+            double res = 0;
 
             if(root->tok->lexeme == "*")
                 res = extractNumValue(one, root->children[0]) * extractNumValue(two, root->children[1]);
-            else
+            else if(root->tok->lexeme == "/")
                 res = extractNumValue(one, root->children[0]) / extractNumValue(two, root->children[1]);
+            else if(root->tok->lexeme == "%")
+                res = (SCRIBBLE_NUM_REP)extractNumValue(one, root->children[0]) % (SCRIBBLE_NUM_REP)extractNumValue(two, root->children[1]);
 
             auto casted = castNumValue(res, one.type, two.type);
             return AnyValue{{1}, casted.first, casted.second};
@@ -643,7 +666,29 @@ shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
         case EVAL_RES_TYPE::Object:
             return make_shared<int>(0); // Trying to avoid the existence of nullptrs
         default:
-            break; // custom values
+            break; // TODO: custom values
+    }
+
+    return make_shared<int>(0);
+}
+
+// Make a duplicate of a variable
+shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
+    switch(type) {
+        case EVAL_RES_TYPE::None:
+            return make_shared<int>(0);
+        case EVAL_RES_TYPE::Num:
+            return make_shared<SCRIBBLE_NUM_REP>(*(SCRIBBLE_NUM_REP*)val.get());
+        case EVAL_RES_TYPE::Float:
+            return make_shared<SCRIBBLE_FLOAT_REP>(*(SCRIBBLE_FLOAT_REP*)val.get());
+        case EVAL_RES_TYPE::Bool:
+            return make_shared<bool>(*(bool*)val.get());
+        case EVAL_RES_TYPE::String:
+            return make_shared<string>(*(string*)val.get());
+        case EVAL_RES_TYPE::Object:
+            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
+        default:
+            break; // TODO: custom values
     }
 
     return make_shared<int>(0);

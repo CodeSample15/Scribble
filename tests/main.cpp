@@ -6,10 +6,12 @@
 #include "Colors.hpp"
 #include "lexer/lexer_tests.hpp"
 #include "parser/parser_tests.hpp"
+#include "interpreter/interpreter_tests.hpp"
 
 using namespace std;
 
 int main(int argc, char** argv) {
+    // Allow special characters to be printed
     SetConsoleOutputCP(CP_UTF8);
 
     vector<test_t> tests;
@@ -21,12 +23,16 @@ int main(int argc, char** argv) {
             } else if(strcmp(argv[i], "parser")==0) {
                 cout << "Loading Parser Tests..." << endl;
                 load_parser_tests(tests);
+            } else if(strcmp(argv[i], "interpreter")==0) {
+                cout << "Loading Interpreter Tests..." << endl;
+                load_interpreter_tests(tests);
             }
         }
     } else {
         //load all tests
         load_lexer_tests(tests);
         load_parser_tests(tests);
+        load_interpreter_tests(tests);
     }
 
     int failed_tests = 0;
