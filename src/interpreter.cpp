@@ -87,6 +87,16 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // get the datatype from the first child
             EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
 
+            // get the shape of the variable
+            if(root->children[0]->children.size() > 0 && root->children[0]->children[0]->type == NODE_TYPE::ARR_INDEX) {
+                for(auto &indexNode : root->children[0]->children[0]->children) {
+                    AnyValue dim = eval(indexNode, returnContext, memTable);
+                    val.dimension.push_back(
+                        extractNumValue(dim, indexNode)
+                    );
+                }
+            }
+
             // get every new variable name from the second child onwards
             size_t i=1;
             for(; i<root->children.size() && root->children[i]->type == NODE_TYPE::IDENT; i++) {
@@ -102,9 +112,17 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 val = AnyValue{{1}, defaultValueFor(dtype), dtype};
             }
 
+            for(auto &ident : idents) {
+                AnyValue tmp;
+                tmp.dimension = val.dimension;
+                tmp.type = val.type;
+                tmp.value = duplicateValue(val.type, val.value);
+            }
+
             if(returnContext == nullptr) {
                 // Store in global memory (we're not in a function)
                 for(auto& i : idents) {
+
                     GlobalValues.push_back({val, i, make_shared<mutex>()});
                 }
             }

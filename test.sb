@@ -1,22 +1,10 @@
 num x = 3
 
 :START: {
-    :print("Hello World!")
-
-    num count
-    repeat 3 {
-        :print("Count: '" + count + "'")
-        count += 1
-    }
-
-    :print("" + foo(2,3))
-    return $JOY_Y
+    num[5, 3] i
+    :print("Success")
 }
 
 :UPDATE: {
-    return (0 + 3) == 2-7
-}
-
-fun foo(float first, num second) {
-    return 3
+    return 0
 }
