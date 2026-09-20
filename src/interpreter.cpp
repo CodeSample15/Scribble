@@ -26,7 +26,7 @@ void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
 shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype);
-AnyValue valueFromArrayIndex(shared_ptr<void> arr, vector<int> index);
+AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
@@ -132,7 +132,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 AnyValue tmp;
                 tmp.dimension = val.dimension;
                 tmp.type = val.type;
-                tmp.value = duplicateValue(val.type, val.value);
+                tmp.value = arr ? val.value : duplicateValue(val.type, val.value);
 
                 if(returnContext == nullptr)
                     GlobalValues.push_back({tmp, ident, make_shared<mutex>()});
@@ -145,6 +145,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::VARIABLE_ASSIGN: {
             // get reference to target variable
             AnyValue targetRef = eval(root->children[0], returnContext, memTable);
+            if(targetRef.dimension.size() != 1 || targetRef.dimension[0] != 1)
+                throwScribbleError(root->children[0], "Cannot assign value to collection", ERR_TYPE::BAD_TYPE);
 
             // =, +=, -=, etc
             TOK_TYPE assignOp = root->children[1]->tok->type;
@@ -222,7 +224,25 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                             return var.second;
                         else {
                             // we need to go deeper, this here's an array
-                            log("arr found");
+                            // calculate the indicies referenced
+                            auto arr = var.second;
+                            if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
+                                vector<int> index;
+                                for(auto &indexNode : root->children[1]->children) {
+                                    AnyValue dim = eval(indexNode, returnContext, memTable);
+                                    index.push_back(
+                                        extractNumValue(dim, indexNode)
+                                    );
+                                }
+
+                                try {
+                                    arr = valueFromArrayIndex(arr, index);
+                                } catch(ScribbleErr &e) {
+                                    throwScribbleError(root->children[0], e.msg, e.type);
+                                }
+                            }
+
+                            return arr;
                         }
                     }
                 }
@@ -552,6 +572,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
                 string res = "";
                 for(auto &t : {one, two}) {
+                    if(t.dimension.size() != 1 || t.dimension[0] != 1)
+                        throwScribbleError(root, "Cannot convert collection to string", ERR_TYPE::BAD_TYPE);
+
                     switch(t.type) {
                         case EVAL_RES_TYPE::String:
                             res += *(string*)t.value.get();
@@ -573,9 +596,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             double res;
             if(root->tok->type == TOK_TYPE::PLUS)
-                res = extractNumValue(one, root->children[0]) + extractNumValue(two, root->children[1]);
+                res = extractNumValue(one, root) + extractNumValue(two, root);
             else
-                res = extractNumValue(one, root->children[0]) - extractNumValue(two, root->children[1]);
+                res = extractNumValue(one, root) - extractNumValue(two, root);
 
             auto casted = castNumValue(res, one.type, two.type);
             return AnyValue{{1}, casted.first, casted.second};
@@ -747,8 +770,21 @@ shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype) {
     return arr;
 }
 
-AnyValue valueFromArrayIndex(shared_ptr<void> arr, vector<int> index) {
-    return AnyValue{};
+AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index) {
+    // bounds check
+    if(index.size() == 0 || index[0] < 0 || index[0] >= arr.dimension[0])
+        throwScribbleError(nullptr, "Array index out of bounds", ERR_TYPE::OOB);
+    
+    // I'm so sorry for this line
+    // Getting the "index[0]" index from the array casted from a void pointer
+    AnyValue res = (*(vector<AnyValue>*)arr.value.get()) [index[0]];
+
+    if(index.size() == 1)
+        return res;
+
+    auto start = index.begin()+1;
+    vector<int> sub(start, index.end());
+    return valueFromArrayIndex(res, sub);
 }
 
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2) {
@@ -758,6 +794,10 @@ pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE typ
 }
 
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
+    // Check if this is an array and if so, throw because we can't get a single value
+    if(val.dimension.size() != 1 || val.dimension[0] != 1)
+        throwScribbleError(node, "Expected value, got collection", ERR_TYPE::BAD_TYPE);
+
     switch(val.type) {
         case EVAL_RES_TYPE::None:
             throwScribbleError(node, "None", ERR_TYPE::BAD_TYPE);

@@ -1,8 +1,11 @@
 num x = 3
 
 :START: {
-    num[110] i
-    :print(""+i[4])
+    num[7, 3] i
+    :print(""+i[0, 2])
+    i[0, 0] = 1
+    :print(""+i[0, 0])
+
     :print("Success")
 }
 
