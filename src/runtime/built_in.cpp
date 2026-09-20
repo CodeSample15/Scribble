@@ -9,6 +9,9 @@ using namespace Interpreter;
 
 // built in functions prototypes
 AnyValue BI_fun_print(vector<AnyValue>);
+AnyValue BI_fun_shape(vector<AnyValue>);
+AnyValue BI_fun_len(vector<AnyValue>);
+
 AnyValue noValue();
 
 // helper prototypes
@@ -21,6 +24,8 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
 
     funcs.clear();
     funcs.insert({PRINT_FUNC_NAME, BI_fun_print});
+    funcs.insert({SHAPE_FUNC_NAME, BI_fun_shape});
+    funcs.insert({LEN_FUNC_NAME, BI_fun_len});
 }
 
 void BuiltIn::update(SymbolTableValues &memory) {
@@ -34,6 +39,24 @@ AnyValue BI_fun_print(vector<AnyValue> args) {
     return noValue();
 }
 
+AnyValue BI_fun_shape(vector<AnyValue> args) {
+    return AnyValue{};
+}
+
+AnyValue BI_fun_len(vector<AnyValue> args) {
+    assert_arg_types(LEN_FUNC_NAME, {EVAL_RES_TYPE::None}, args); // None type expected because arg can be of any type
+    if(args[0].dimension.size() == 0)
+        throw ScribbleErr{0,0, "Function got invalid parameter", ERR_TYPE::INVALID_FUN_CALL};
+
+    SCRIBBLE_NUM_REP res = args[0].dimension[0];
+
+    return AnyValue{
+        {1},
+        make_shared<SCRIBBLE_NUM_REP>(res),
+        EVAL_RES_TYPE::Num
+    };
+}
+
 // define helper functions
 void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyValue> &args) {
     if(types.size() != args.size())
@@ -41,6 +64,8 @@ void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyVal
         throw ScribbleErr{0,0, "Built in function '" + funName + "' expected " + to_string(types.size()) + " arguments, got " + to_string(args.size()), ERR_TYPE::INVALID_FUN_CALL};
 
     for(size_t i=0; i<types.size(); i++) {
+        if(types[i] == EVAL_RES_TYPE::None) continue;
+
         if(args[i].type != types[i]) {
             // construct a list of what args were actually expected
             string expectedTypes = "";

@@ -4,7 +4,7 @@ num x = 3
     num[7, 3] i
     :print(""+i[0, 2])
     i[0, 0] = 1
-    :print(""+i[0, 0])
+    :print(""+:len(i))
 
     :print("Success")
 }

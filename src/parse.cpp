@@ -567,6 +567,7 @@ AST_Nib_Pair_t parse_exp_not(Nibbler nibbler) {
 //variable_reference | literal | '(' , expression , ')' | function_call
 AST_Nib_Pair_t parse_exp_primary(Nibbler nibbler) {
     return alt(nibbler, {
+                parse_built_in_function_call,
                 [&](Nibbler n){
                     AST_Node primary;
                     tie(n, primary) = alt_types(n, {TOK_TYPE::STRING_LITERAL, TOK_TYPE::INT_LITERAL, TOK_TYPE::FLOAT_LITERAL, TOK_TYPE::TRUE, TOK_TYPE::FALSE});
