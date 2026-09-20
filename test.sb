@@ -2,6 +2,7 @@ num x = 3
 
 :START: {
     num[110] i
+    :print(""+i[4])
     :print("Success")
 }
 

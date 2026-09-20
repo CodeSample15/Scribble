@@ -26,6 +26,7 @@ void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
 shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype);
+AnyValue valueFromArrayIndex(shared_ptr<void> arr, vector<int> index);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
@@ -221,7 +222,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                             return var.second;
                         else {
                             // we need to go deeper, this here's an array
-                            
+                            log("arr found");
                         }
                     }
                 }
@@ -723,23 +724,31 @@ shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
 
 // recursive method of creating a new <<matrix of variable size
 shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype) {
-    auto arr = make_shared<vector<shared_ptr<void>>>();
+    auto arr = make_shared<vector<AnyValue>>();
     auto start = shape.begin()+1;
     vector<int> sub(start, shape.end());
 
-    for(size_t i=0; i<shape.size(); i++) {
+    for(int i=0; i<shape[0]; i++) {
         if(shape.size() == 1) {
-            shared_ptr<AnyValue> tmp = make_shared<AnyValue>();
-            tmp->dimension = {1};
-            tmp->type = dtype;
-            tmp->value = defaultValueFor(dtype);
-            arr->push_back(tmp);
+            arr->push_back(AnyValue {
+                {1},
+                defaultValueFor(dtype),
+                dtype
+            });
+        } else {
+            arr->push_back(AnyValue {
+                sub,
+                newArrayOfShape(sub, dtype),
+                dtype
+            });
         }
-        else
-            arr->push_back(newArrayOfShape(sub, dtype));
     }
 
     return arr;
+}
+
+AnyValue valueFromArrayIndex(shared_ptr<void> arr, vector<int> index) {
+    return AnyValue{};
 }
 
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2) {
