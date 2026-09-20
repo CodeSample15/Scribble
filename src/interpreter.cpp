@@ -25,6 +25,7 @@ bool isPrimitive(EVAL_RES_TYPE t); // returns true if the passed type is a primi
 void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
+shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
@@ -83,12 +84,16 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::VARIABLE_DEF: {
             vector<string> idents;
             AnyValue val;
+            val.dimension = {1};
+            bool arr = false;
 
             // get the datatype from the first child
             EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
 
             // get the shape of the variable
             if(root->children[0]->children.size() > 0 && root->children[0]->children[0]->type == NODE_TYPE::ARR_INDEX) {
+                arr = true;
+                val.dimension.clear();
                 for(auto &indexNode : root->children[0]->children[0]->children) {
                     AnyValue dim = eval(indexNode, returnContext, memTable);
                     val.dimension.push_back(
@@ -103,13 +108,23 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 idents.push_back(root->children[i]->tok->lexeme);
             }
 
-            // get the assigned value or the default vale for the new variable
-            if(i < root->children.size()) {
-                val = eval(root->children[i], returnContext, memTable);
-                checkForAllowedDtype(val, {dtype}, root->children[i]);
-            } 
-            else {
-                val = AnyValue{{1}, defaultValueFor(dtype), dtype};
+            if(!arr) {
+                // get the assigned value or the default vale for the new variable
+                if(i < root->children.size()) {
+                    val = eval(root->children[i], returnContext, memTable);
+                    checkForAllowedDtype(val, {dtype}, root->children[i]);
+                } 
+                else {
+                    val = AnyValue{{1}, defaultValueFor(dtype), dtype};
+                }
+            } else {
+                // TODO: allow arrays to be assigned by literals somehow
+                if(i < root->children.size())
+                    throwScribbleError(root->children[0], "Cannot assign single value to array", ERR_TYPE::BAD_ASSIGNMENT);
+
+                // create a new array of {val.dimension} dimension
+                val.type = dtype;
+                val.value = newArrayOfShape(val.dimension, dtype);
             }
 
             for(auto &ident : idents) {
@@ -117,24 +132,11 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 tmp.dimension = val.dimension;
                 tmp.type = val.type;
                 tmp.value = duplicateValue(val.type, val.value);
-            }
 
-            if(returnContext == nullptr) {
-                // Store in global memory (we're not in a function)
-                for(auto& i : idents) {
-
-                    GlobalValues.push_back({val, i, make_shared<mutex>()});
-                }
-            }
-            else {
-                // Store in the memory table (we're in a function)
-                for(auto& i : idents) {
-                    AnyValue tmp;
-                    tmp.dimension = val.dimension;
-                    tmp.type = val.type;
-                    tmp.value = duplicateValue(val.type, val.value);
-                    memTable->values.emplace_back(pair<string, AnyValue>{i, tmp});
-                }
+                if(returnContext == nullptr)
+                    GlobalValues.push_back({tmp, ident, make_shared<mutex>()});
+                else
+                    memTable->values.emplace_back(pair<string, AnyValue>{ident, tmp});
             }
             break;
         }
@@ -710,6 +712,22 @@ shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
     }
 
     return make_shared<int>(0);
+}
+
+// recursive method of creating a new <<matrix of variable size
+shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype) {
+    auto arr = make_shared<vector<shared_ptr<void>>>();
+    auto start = shape.begin()+1;
+    vector<int> sub(start, shape.end());
+
+    for(size_t i=0; i<shape.size(); i++) {
+        if(shape.size() == 1)
+            arr->push_back(defaultValueFor(dtype));
+        else
+            arr->push_back(newArrayOfShape(sub, dtype));
+    }
+
+    return arr;
 }
 
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2) {

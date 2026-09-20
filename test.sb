@@ -1,7 +1,7 @@
 num x = 3
 
 :START: {
-    num[5, 3] i
+    num[110] i
     :print("Success")
 }
 

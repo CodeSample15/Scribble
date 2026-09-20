@@ -32,6 +32,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Unit tests
  - [ ] Array support
  - [ ] Object support
+ - [ ] Add new error types to err.cpp
 [ ] Graphics module
 [ ] Input module
 
