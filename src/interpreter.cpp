@@ -216,7 +216,14 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             while(memTablePtr != nullptr) {
                 for(auto& var : memTablePtr->values) {
-                    if(var.first == ident) return var.second;
+                    if(var.first == ident) {
+                        if(var.second.dimension.size()==1 && var.second.dimension[0] == 1)
+                            return var.second;
+                        else {
+                            // we need to go deeper, this here's an array
+                            
+                        }
+                    }
                 }
                 memTablePtr = memTablePtr->parent;
             }
