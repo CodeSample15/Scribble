@@ -721,8 +721,13 @@ shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype) {
     vector<int> sub(start, shape.end());
 
     for(size_t i=0; i<shape.size(); i++) {
-        if(shape.size() == 1)
-            arr->push_back(defaultValueFor(dtype));
+        if(shape.size() == 1) {
+            shared_ptr<AnyValue> tmp = make_shared<AnyValue>();
+            tmp->dimension = {1};
+            tmp->type = dtype;
+            tmp->value = defaultValueFor(dtype);
+            arr->push_back(tmp);
+        }
         else
             arr->push_back(newArrayOfShape(sub, dtype));
     }
