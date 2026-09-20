@@ -31,10 +31,13 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Add new AST nodes to debug logger
  - [X] Unit tests
  - [ ] Array support
-    - [ ] Creation of multi-dimensional arrays
+    - [X] Creation of multi-dimensional arrays
     - [ ] Len function
+    - [ ] Unit tests
  - [ ] Object support
  - [ ] Add new error types to err.cpp
+ - [ ] File imports
+ - [ ] Safe global variable access
 [ ] Graphics module
 [ ] Input module
 
