@@ -97,9 +97,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 val.dimension.clear();
                 for(auto &indexNode : root->children[0]->children[0]->children) {
                     AnyValue dim = eval(indexNode, returnContext, memTable);
-                    val.dimension.push_back(
-                        extractNumValue(dim, indexNode)
-                    );
+                    int dimVal = extractNumValue(dim, indexNode);
+
+                    if(dimVal < 1)
+                        throwScribbleError(root->children[0]->children[0], "Index must be >0", ERR_TYPE::OOB);
+
+                    val.dimension.push_back(dimVal);
                 }
             }
 
