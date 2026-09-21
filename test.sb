@@ -2,6 +2,8 @@ num x = 3
 
 :START: {
     num[7, 3] i
+    num[] test = :shape(i)
+
     :print(""+i[0, 2])
     i[0, 0] = 1
 

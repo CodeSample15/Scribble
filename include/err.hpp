@@ -19,6 +19,7 @@ typedef enum {
     BAD_TYPE,           // unexpected type
     BAD_ASSIGNMENT,     // bad value assignment to a variable
     MISSING_REQUIRED,   // missing a required function
+    MISSING_ASSIGNMENT, // missing a required assignment
     UNEXPECTED_TOKEN,   // unexpected token
     INVALID_FUN_CALL,   // invalid function call
     UNKNOWN_DTYPE,      // unknown dtype referenced

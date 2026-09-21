@@ -191,22 +191,17 @@ AST_Nib_Pair_t parse_variable_assign(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// '[' , expression , {',' expression} , ']'
+// '[' , [expression , {',' expression}] , ']'
 AST_Nib_Pair_t parse_arr_index(Nibbler nibbler) {
-    AST_Node first;
-    node_vec_t rest;
+    AST_Node size;
 
     nibbler = require(nibbler, TOK_TYPE::OPEN_BRACKET).first;
-    tie(nibbler, first) = parse_expression(nibbler);
-    tie(nibbler, rest) = many_0(nibbler, [&](Nibbler n) {
-        n = require(n, TOK_TYPE::COMMA).first;
-        return parse_expression(n);
-    });
+    tie(nibbler, size) = opt(nibbler, parse_arguments);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_BRACKET).first;
 
     AST_Node res(NODE_TYPE::ARR_INDEX);
-    push_children(res, {first});
-    push_children(res, rest);
+    for(auto &exp : size.children)
+        push_children(res, {*exp});
 
     return {nibbler, res};
 }

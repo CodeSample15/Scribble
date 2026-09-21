@@ -87,20 +87,25 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue val;
             val.dimension = {1};
             bool arr = false;
+            bool autoArr = false; // auto arrays are arrays of an undeclared size that are immediately assigned to another array
 
             // get the datatype from the first child
             EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
 
-            // get the shape of the variable
+            // get the shape of the variable (if it is an array declaration)
             if(root->children[0]->children.size() > 0 && root->children[0]->children[0]->type == NODE_TYPE::ARR_INDEX) {
                 arr = true;
                 val.dimension.clear();
+
+                if(root->children[0]->children[0]->children.size() == 0)
+                    autoArr = true;
+
                 for(auto &indexNode : root->children[0]->children[0]->children) {
                     AnyValue dim = eval(indexNode, returnContext, memTable);
                     int dimVal = extractNumValue(dim, indexNode);
 
                     if(dimVal < 1)
-                        throwScribbleError(root->children[0]->children[0], "Index must be >0", ERR_TYPE::OOB);
+                        throwScribbleError(root->children[0]->children[0], "Size must be >0", ERR_TYPE::OOB);
 
                     val.dimension.push_back(dimVal);
                 }
@@ -123,8 +128,18 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 }
             } else {
                 // TODO: allow arrays to be assigned by literals somehow
-                if(i < root->children.size())
-                    throwScribbleError(root->children[0], "Cannot assign single value to array", ERR_TYPE::BAD_ASSIGNMENT);
+                if(i < root->children.size()) {
+                    if(autoArr) {
+                        // get the assigned value or the default vale for the new variable
+                        val = eval(root->children[i], returnContext, memTable);
+                        checkForAllowedDtype(val, {dtype}, root->children[i]);
+                    } else {
+                        throwScribbleError(root->children[0], "Cannot assign single value to array", ERR_TYPE::BAD_ASSIGNMENT);
+                    }
+                }
+                else if(autoArr) {
+                    throwScribbleError(root->children[0], "Auto arrays must be assigned at declaration", ERR_TYPE::MISSING_ASSIGNMENT);
+                }
 
                 // create a new array of {val.dimension} dimension
                 val.type = dtype;
@@ -244,6 +259,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // TODO: figure out what could possibly cause this error to be triggered
             if(foundValue == nullptr) break;
 
+            // index variable if one is provided
             if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
                 vector<int> index;
                 for(auto &indexNode : root->children[1]->children) {
