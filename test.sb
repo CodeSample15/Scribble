@@ -4,7 +4,14 @@ num x = 3
     num[7, 3] i
     :print(""+i[0, 2])
     i[0, 0] = 1
-    :print(""+:len(i))
+
+    :print("Hi")
+    
+    num count = 0
+    repeat 2 {
+        :print(""+:shape(i))
+        count += 1
+    }
 
     :print("Success")
 }

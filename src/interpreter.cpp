@@ -214,17 +214,19 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::VARIABLE_REFERENCE: {
-            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL)
+            // function calls can represent a value, check to see if this is a function call
+            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL || root->children[0]->type == NODE_TYPE::BUILT_IN_FUNCTION_CALL)
                 return eval(root->children[0], returnContext, memTable);
 
+            // get the name of the variable to search memory for
             string ident = root->children[0]->tok->lexeme;
             auto& memTablePtr = memTable;
 
             while(memTablePtr != nullptr) {
                 for(auto& var : memTablePtr->values) {
                     if(var.first == ident) {
-                        if(var.second.dimension.size()==1 && var.second.dimension[0] == 1)
-                            return var.second;
+                        if(var.second.dimension.size()==1 && var.second.dimension[0]==1)
+                            return var.second; // single value, return it
                         else {
                             // we need to go deeper, this here's an array
                             // calculate the indicies referenced
