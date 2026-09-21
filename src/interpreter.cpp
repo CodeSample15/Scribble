@@ -214,49 +214,57 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::VARIABLE_REFERENCE: {
+            shared_ptr<AnyValue> foundValue = nullptr;
+
             // function calls can represent a value, check to see if this is a function call
-            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL || root->children[0]->type == NODE_TYPE::BUILT_IN_FUNCTION_CALL)
-                return eval(root->children[0], returnContext, memTable);
+            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL || root->children[0]->type == NODE_TYPE::BUILT_IN_FUNCTION_CALL) {
+                foundValue = make_shared<AnyValue>(eval(root->children[0], returnContext, memTable));
+            } else {
+                // get the name of the variable to search memory for
+                string ident = root->children[0]->tok->lexeme;
+                auto& memTablePtr = memTable;
 
-            // get the name of the variable to search memory for
-            string ident = root->children[0]->tok->lexeme;
-            auto& memTablePtr = memTable;
-
-            while(memTablePtr != nullptr) {
-                for(auto& var : memTablePtr->values) {
-                    if(var.first == ident) {
-                        if(var.second.dimension.size()==1 && var.second.dimension[0]==1)
-                            return var.second; // single value, return it
-                        else {
-                            // we need to go deeper, this here's an array
-                            // calculate the indicies referenced
-                            auto arr = var.second;
-                            if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
-                                vector<int> index;
-                                for(auto &indexNode : root->children[1]->children) {
-                                    AnyValue dim = eval(indexNode, returnContext, memTable);
-                                    index.push_back(
-                                        extractNumValue(dim, indexNode)
-                                    );
-                                }
-
-                                try {
-                                    arr = valueFromArrayIndex(arr, index);
-                                } catch(ScribbleErr &e) {
-                                    throwScribbleError(root->children[0], e.msg, e.type);
-                                }
-                            }
-
-                            return arr;
+                // start from the local scope and keep moving through memory until we've exhausted all scopes or we found the variable
+                while(memTablePtr != nullptr && foundValue == nullptr) {
+                    for(auto& var : memTablePtr->values) {
+                        if(var.first == ident) {
+                            foundValue = make_shared<AnyValue>(var.second);
+                            break;
                         }
                     }
+
+                    // nothing found here, move up a scope
+                    memTablePtr = memTablePtr->parent;
                 }
-                memTablePtr = memTablePtr->parent;
+
+                if(foundValue == nullptr)
+                    throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
             }
+
+            // TODO: figure out what could possibly cause this error to be triggered
+            if(foundValue == nullptr) break;
+
+            if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
+                vector<int> index;
+                for(auto &indexNode : root->children[1]->children) {
+                    AnyValue dim = eval(indexNode, returnContext, memTable);
+                    index.push_back(
+                        extractNumValue(dim, indexNode)
+                    );
+                }
+
+                try {
+                    *foundValue = valueFromArrayIndex(*foundValue, index);
+                } catch(ScribbleErr &e) {
+                    throwScribbleError(root->children[0], e.msg, e.type);
+                }
+            }
+
+            if(foundValue != nullptr)
+                return *foundValue;
 
             //TODO: search global memory
 
-            throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
             break;
         }
 
