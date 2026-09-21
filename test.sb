@@ -9,7 +9,7 @@ num x = 3
     
     num count = 0
     repeat 2 {
-        :print(""+:shape(i))
+        :print(""+:shape(i)[0])
         count += 1
     }
 
