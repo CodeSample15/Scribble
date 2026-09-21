@@ -40,7 +40,24 @@ AnyValue BI_fun_print(vector<AnyValue> args) {
 }
 
 AnyValue BI_fun_shape(vector<AnyValue> args) {
-    return AnyValue{};
+    assert_arg_types(LEN_FUNC_NAME, {EVAL_RES_TYPE::None}, args); // None type expected because arg can be of any type
+    if(args[0].dimension.size() == 0)
+        throw ScribbleErr{0,0, "Function got invalid parameter", ERR_TYPE::INVALID_FUN_CALL};
+
+    shared_ptr<vector<AnyValue>> res = make_shared<vector<AnyValue>>();
+    for(int i : args[0].dimension) {
+        res->push_back(AnyValue{
+            {1},
+            make_shared<SCRIBBLE_NUM_REP>(i),
+            EVAL_RES_TYPE::Num
+        });
+    }
+
+    return AnyValue {
+        {(int)res->size()},
+        res,
+        EVAL_RES_TYPE::Num
+    };
 }
 
 AnyValue BI_fun_len(vector<AnyValue> args) {
@@ -50,7 +67,7 @@ AnyValue BI_fun_len(vector<AnyValue> args) {
 
     SCRIBBLE_NUM_REP res = args[0].dimension[0];
 
-    return AnyValue{
+    return AnyValue {
         {1},
         make_shared<SCRIBBLE_NUM_REP>(res),
         EVAL_RES_TYPE::Num
