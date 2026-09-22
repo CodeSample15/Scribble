@@ -32,7 +32,30 @@ string errmsg(ERR_TYPE t) {
             return "Unrecognized pattern in source code";
         case ERR_TYPE::EXPECTED:
             return "Expected:";
-        //TODO: add new error messages
+        case ERR_TYPE::EOT:
+            return "End of token list";
+        case ERR_TYPE::BAD_TYPE:
+            return "Bad type";
+        case ERR_TYPE::BAD_ASSIGNMENT:
+            return "Bad value assignment";
+        case ERR_TYPE::MISSING_REQUIRED:
+            return "Missing required function";
+        case ERR_TYPE::MISSING_ASSIGNMENT:
+            return "Missing a required assignment";
+        case ERR_TYPE::UNEXPECTED_TOKEN:
+            return "Encountered an unexpected token";
+        case ERR_TYPE::INVALID_FUN_CALL:
+            return "Invalid call to function";
+        case ERR_TYPE::UNKNOWN_DTYPE:
+            return "Encountered unknown data type";
+        case ERR_TYPE::INVALID_ASSIGNMENT:
+            return "Invalid value assignment";
+        case ERR_TYPE::INVALID_SYMBOL:
+            return "Invalid symbol";
+        case ERR_TYPE::INVALID_OPERATION:
+            return "Invalid operation";
+        case ERR_TYPE::OOB:
+            return "Out of bounds";
         default:
             return "Unimplemented Error Message";
     }
