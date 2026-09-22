@@ -4,6 +4,9 @@ num x = 3
     num[7, 3] i
     num[] test = :shape(i)
 
+    num fahh = 0
+    :print(""+test[fahh])
+
     :print(""+i[0, 2])
     i[0, 0] = 1
 

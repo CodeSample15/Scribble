@@ -54,7 +54,7 @@ void test_function(string funName, shared_ptr<AST_Node> program) {
                 auto rtnCtx = make_shared<Interpreter::AnyValue>();
                 Interpreter::eval(
                     function->children[1], // evaluate the body of the function
-                    rtnCtx, 
+                    rtnCtx,
                     make_shared<Interpreter::SymbolTable>());
                 
                 if(rtnCtx == nullptr)
@@ -84,6 +84,7 @@ void load_interpreter_tests(vector<test_t> &tests) {
     tests.emplace_back("INTERPRETER: strings - assignment", [=]{ test_function("test_string_assign", program); });
     tests.emplace_back("INTERPRETER: strings - compare", [=]{ test_function("test_string_compare", program); });
     tests.emplace_back("INTERPRETER: bitwise ops", [=]{ test_function("test_bitwise", program); });
+    tests.emplace_back("INTERPRETER: arrays", [=]{ test_function("test_arrays", program); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 }

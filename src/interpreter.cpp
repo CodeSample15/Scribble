@@ -237,7 +237,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             } else {
                 // get the name of the variable to search memory for
                 string ident = root->children[0]->tok->lexeme;
-                auto& memTablePtr = memTable;
+                auto memTablePtr = memTable;
 
                 // start from the local scope and keep moving through memory until we've exhausted all scopes or we found the variable
                 while(memTablePtr != nullptr && foundValue == nullptr) {
