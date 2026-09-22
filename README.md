@@ -30,8 +30,16 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] First "Hello World"
  - [X] Add new AST nodes to debug logger
  - [X] Unit tests
- - [ ] Array support
+ - [X] Array support
+    - [X] Creation of multi-dimensional arrays
+    - [X] Len function
+    - [X] Unit tests
  - [ ] Object support
+ - [ ] Add new error types to err.cpp
+ - [ ] File imports
+ - [ ] Safe global variable access
+ - [ ] Improve `repeat` loops to have built in counters (better for indexing)
+ - [ ] Short-circuit boolean expressions
 [ ] Graphics module
 [ ] Input module
 
@@ -82,7 +90,7 @@ variable_reference  = normal_var_ref
 normal_var_ref      = chained_identifier , [arr_index]
 built_in_var_ref    = '$' , identifier
 
-arr_index           = '[' , expression , {',' , expression} , ']'
+arr_index           = '[' , [expression , {',' , expression}] , ']'
 
 ASSIGN_OP           = '='
                     | '+='

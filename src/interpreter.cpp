@@ -25,6 +25,8 @@ bool isPrimitive(EVAL_RES_TYPE t); // returns true if the passed type is a primi
 void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
 shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
 shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
+shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype);
+AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
@@ -83,9 +85,31 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::VARIABLE_DEF: {
             vector<string> idents;
             AnyValue val;
+            val.dimension = {1};
+            bool arr = false;
+            bool autoArr = false; // auto arrays are arrays of an undeclared size that are immediately assigned to another array
 
             // get the datatype from the first child
             EVAL_RES_TYPE dtype = dtypeFromIdent(root->children[0]);
+
+            // get the shape of the variable (if it is an array declaration)
+            if(root->children[0]->children.size() > 0 && root->children[0]->children[0]->type == NODE_TYPE::ARR_INDEX) {
+                arr = true;
+                val.dimension.clear();
+
+                if(root->children[0]->children[0]->children.size() == 0)
+                    autoArr = true;
+
+                for(auto &indexNode : root->children[0]->children[0]->children) {
+                    AnyValue dim = eval(indexNode, returnContext, memTable);
+                    int dimVal = extractNumValue(dim, indexNode);
+
+                    if(dimVal < 1)
+                        throwScribbleError(root->children[0]->children[0], "Size must be >0", ERR_TYPE::OOB);
+
+                    val.dimension.push_back(dimVal);
+                }
+            }
 
             // get every new variable name from the second child onwards
             size_t i=1;
@@ -93,30 +117,45 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 idents.push_back(root->children[i]->tok->lexeme);
             }
 
-            // get the assigned value or the default vale for the new variable
-            if(i < root->children.size()) {
-                val = eval(root->children[i], returnContext, memTable);
-                checkForAllowedDtype(val, {dtype}, root->children[i]);
-            } 
-            else {
-                val = AnyValue{{1}, defaultValueFor(dtype), dtype};
+            if(!arr) {
+                // get the assigned value or the default vale for the new variable
+                if(i < root->children.size()) {
+                    val = eval(root->children[i], returnContext, memTable);
+                    checkForAllowedDtype(val, {dtype}, root->children[i]);
+                } 
+                else {
+                    val = AnyValue{{1}, defaultValueFor(dtype), dtype};
+                }
+            } else {
+                // TODO: allow arrays to be assigned by literals somehow
+                if(i < root->children.size()) {
+                    if(autoArr) {
+                        // get the assigned value or the default vale for the new variable
+                        val = eval(root->children[i], returnContext, memTable);
+                        checkForAllowedDtype(val, {dtype}, root->children[i]);
+                    } else {
+                        throwScribbleError(root->children[0], "Cannot assign single value to array", ERR_TYPE::BAD_ASSIGNMENT);
+                    }
+                }
+                else if(autoArr) {
+                    throwScribbleError(root->children[0], "Auto arrays must be assigned at declaration", ERR_TYPE::MISSING_ASSIGNMENT);
+                }
+
+                // create a new array of {val.dimension} dimension
+                val.type = dtype;
+                val.value = newArrayOfShape(val.dimension, dtype);
             }
 
-            if(returnContext == nullptr) {
-                // Store in global memory (we're not in a function)
-                for(auto& i : idents) {
-                    GlobalValues.push_back({val, i, make_shared<mutex>()});
-                }
-            }
-            else {
-                // Store in the memory table (we're in a function)
-                for(auto& i : idents) {
-                    AnyValue tmp;
-                    tmp.dimension = val.dimension;
-                    tmp.type = val.type;
-                    tmp.value = duplicateValue(val.type, val.value);
-                    memTable->values.emplace_back(pair<string, AnyValue>{i, tmp});
-                }
+            for(auto &ident : idents) {
+                AnyValue tmp;
+                tmp.dimension = val.dimension;
+                tmp.type = val.type;
+                tmp.value = arr ? val.value : duplicateValue(val.type, val.value);
+
+                if(returnContext == nullptr)
+                    GlobalValues.push_back({tmp, ident, make_shared<mutex>()});
+                else
+                    memTable->values.emplace_back(pair<string, AnyValue>{ident, tmp});
             }
             break;
         }
@@ -124,6 +163,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::VARIABLE_ASSIGN: {
             // get reference to target variable
             AnyValue targetRef = eval(root->children[0], returnContext, memTable);
+            if(targetRef.dimension.size() != 1 || targetRef.dimension[0] != 1)
+                throwScribbleError(root->children[0], "Cannot assign value to collection", ERR_TYPE::BAD_TYPE);
 
             // =, +=, -=, etc
             TOK_TYPE assignOp = root->children[1]->tok->type;
@@ -188,22 +229,58 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::VARIABLE_REFERENCE: {
-            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL)
-                return eval(root->children[0], returnContext, memTable);
+            shared_ptr<AnyValue> foundValue = nullptr;
 
-            string ident = root->children[0]->tok->lexeme;
-            auto& memTablePtr = memTable;
+            // function calls can represent a value, check to see if this is a function call
+            if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL || root->children[0]->type == NODE_TYPE::BUILT_IN_FUNCTION_CALL) {
+                foundValue = make_shared<AnyValue>(eval(root->children[0], returnContext, memTable));
+            } else {
+                // get the name of the variable to search memory for
+                string ident = root->children[0]->tok->lexeme;
+                auto memTablePtr = memTable;
 
-            while(memTablePtr != nullptr) {
-                for(auto& var : memTablePtr->values) {
-                    if(var.first == ident) return var.second;
+                // start from the local scope and keep moving through memory until we've exhausted all scopes or we found the variable
+                while(memTablePtr != nullptr && foundValue == nullptr) {
+                    for(auto& var : memTablePtr->values) {
+                        if(var.first == ident) {
+                            foundValue = make_shared<AnyValue>(var.second);
+                            break;
+                        }
+                    }
+
+                    // nothing found here, move up a scope
+                    memTablePtr = memTablePtr->parent;
                 }
-                memTablePtr = memTablePtr->parent;
+
+                if(foundValue == nullptr)
+                    throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
             }
+
+            // TODO: figure out what could possibly cause this error to be triggered
+            if(foundValue == nullptr) break;
+
+            // index variable if one is provided
+            if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
+                vector<int> index;
+                for(auto &indexNode : root->children[1]->children) {
+                    AnyValue dim = eval(indexNode, returnContext, memTable);
+                    index.push_back(
+                        extractNumValue(dim, indexNode)
+                    );
+                }
+
+                try {
+                    *foundValue = valueFromArrayIndex(*foundValue, index);
+                } catch(ScribbleErr &e) {
+                    throwScribbleError(root->children[0], e.msg, e.type);
+                }
+            }
+
+            if(foundValue != nullptr)
+                return *foundValue;
 
             //TODO: search global memory
 
-            throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
             break;
         }
 
@@ -524,6 +601,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
                 string res = "";
                 for(auto &t : {one, two}) {
+                    if(t.dimension.size() != 1 || t.dimension[0] != 1)
+                        throwScribbleError(root, "Cannot convert collection to string", ERR_TYPE::BAD_TYPE);
+
                     switch(t.type) {
                         case EVAL_RES_TYPE::String:
                             res += *(string*)t.value.get();
@@ -545,9 +625,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             double res;
             if(root->tok->type == TOK_TYPE::PLUS)
-                res = extractNumValue(one, root->children[0]) + extractNumValue(two, root->children[1]);
+                res = extractNumValue(one, root) + extractNumValue(two, root);
             else
-                res = extractNumValue(one, root->children[0]) - extractNumValue(two, root->children[1]);
+                res = extractNumValue(one, root) - extractNumValue(two, root);
 
             auto casted = castNumValue(res, one.type, two.type);
             return AnyValue{{1}, casted.first, casted.second};
@@ -694,6 +774,48 @@ shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
     return make_shared<int>(0);
 }
 
+// recursive method of creating a new <<matrix of variable size
+shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype) {
+    auto arr = make_shared<vector<AnyValue>>();
+    auto start = shape.begin()+1;
+    vector<int> sub(start, shape.end());
+
+    for(int i=0; i<shape[0]; i++) {
+        if(shape.size() == 1) {
+            arr->push_back(AnyValue {
+                {1},
+                defaultValueFor(dtype),
+                dtype
+            });
+        } else {
+            arr->push_back(AnyValue {
+                sub,
+                newArrayOfShape(sub, dtype),
+                dtype
+            });
+        }
+    }
+
+    return arr;
+}
+
+AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index) {
+    // bounds check
+    if(index.size() == 0 || index[0] < 0 || index[0] >= arr.dimension[0])
+        throwScribbleError(nullptr, "Array index out of bounds", ERR_TYPE::OOB);
+    
+    // I'm so sorry for this line
+    // Getting the "index[0]" index from the array casted from a void pointer
+    AnyValue res = (*(vector<AnyValue>*)arr.value.get()) [index[0]];
+
+    if(index.size() == 1)
+        return res;
+
+    auto start = index.begin()+1;
+    vector<int> sub(start, index.end());
+    return valueFromArrayIndex(res, sub);
+}
+
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2) {
     if(type1 == type2 && type1 == EVAL_RES_TYPE::Num)
         return {make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)val), EVAL_RES_TYPE::Num};
@@ -701,6 +823,10 @@ pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE typ
 }
 
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
+    // Check if this is an array and if so, throw because we can't get a single value
+    if(val.dimension.size() != 1 || val.dimension[0] != 1)
+        throwScribbleError(node, "Expected value, got collection", ERR_TYPE::BAD_TYPE);
+
     switch(val.type) {
         case EVAL_RES_TYPE::None:
             throwScribbleError(node, "None", ERR_TYPE::BAD_TYPE);

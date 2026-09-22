@@ -1,22 +1,26 @@
 num x = 3
 
 :START: {
-    :print("Hello World!")
+    num[7, 3] i
+    num[] test = :shape(i)
 
-    num count
-    repeat 3 {
-        :print("Count: '" + count + "'")
+    num fahh = 0
+    :print(""+test[fahh])
+
+    :print(""+i[0, 2])
+    i[0, 0] = 1
+
+    :print("Hi")
+    
+    num count = 0
+    repeat 2 {
+        :print(""+:shape(i)[count])
         count += 1
     }
 
-    :print("" + foo(2,3))
-    return $JOY_Y
+    :print("Success")
 }
 
 :UPDATE: {
-    return (0 + 3) == 2-7
-}
-
-fun foo(float first, num second) {
-    return 3
+    return 0
 }
