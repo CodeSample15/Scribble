@@ -457,12 +457,18 @@ AST_Nib_Pair_t parse_while_loop(Nibbler nibbler) {
     return {nibbler, res};
 }
 
-// 'repeat' , expression , '{' , body , '}'
+// 'repeat' , expression , ['#' , identifier] , '{' , body , '}'
 AST_Nib_Pair_t parse_repeat_loop(Nibbler nibbler) {
-    AST_Node expression, body;
+    AST_Node expression, loopCounterIdent, body;
 
     nibbler = require(nibbler, TOK_TYPE::REPEAT).first;
     tie(nibbler, expression) = parse_expression(nibbler);
+
+    tie(nibbler, loopCounterIdent) = opt(nibbler, [&](Nibbler n) {
+        n = require(n, TOK_TYPE::LOOP_COUNTER).first;
+        return require(n, TOK_TYPE::IDENTIFIER);
+    });
+
     nibbler = require(nibbler, TOK_TYPE::OPEN_CURLY).first;
     tie(nibbler, body) = parse_body(nibbler);
     nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;

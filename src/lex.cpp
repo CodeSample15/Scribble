@@ -129,13 +129,13 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
         case '.': return TOK_TYPE::DOT;
         case ',': return TOK_TYPE::COMMA;
         case '%': return TOK_TYPE::PERCENT;
-        case '+': 
+        case '+':
             if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::PLUS_EQUALS;
             else
                 return TOK_TYPE::PLUS;
         case '-':
-            if(fr.has_next("=", lexeme, false))    
+            if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::MINUS_EQUALS;
             else
                 return TOK_TYPE::MINUS;
@@ -151,8 +151,8 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
                 return TOK_TYPE::POW;
             else
                 return TOK_TYPE::STAR;
-        case '|': 
-            if(fr.has_next("|", lexeme, false))    
+        case '|':
+            if(fr.has_next("|", lexeme, false))
                 return TOK_TYPE::OR;
             else
                 return TOK_TYPE::BAR;
@@ -180,7 +180,7 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
                 return TOK_TYPE::AND;
             else
                 return TOK_TYPE::BIT_AND;
-        case '!': 
+        case '!':
             if(fr.has_next("=", lexeme, false))
                 return TOK_TYPE::CMP_NOT_EQUALS;
             else
@@ -189,6 +189,7 @@ TOK_TYPE handle_others(file_reader::file_reader &fr, string &lexeme) {
         case '@': return TOK_TYPE::IMAGE_REF;
         case '$': return TOK_TYPE::BUILT_IN_VARIABLE_REF;
         case ':': return TOK_TYPE::SPECIAL_FUNCTION_PREFIX;
+        case '#': return TOK_TYPE::LOOP_COUNTER;
         case ' ':
         case '\n':
         case '\t':

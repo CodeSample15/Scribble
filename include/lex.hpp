@@ -68,6 +68,7 @@ enum TOK_TYPE {
     IMAGE_REF,                      // @
     BUILT_IN_VARIABLE_REF,          // $
     SPECIAL_FUNCTION_PREFIX,        // :
+    LOOP_COUNTER,                   // #
 
     //booleans
     AND,                            // &&

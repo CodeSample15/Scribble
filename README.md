@@ -112,7 +112,7 @@ branch_else         = 'else' , '{' , body , '}'
 loop                = while_loop | repeat_loop
 
 while_loop          = 'while' , expression , '{' , body , '}'
-repeat_loop         = 'repeat' , expression , '{' , body , '}'
+repeat_loop         = 'repeat' , expression , ['#' , identifier] , '{' , body , '}'
 
 chained_identifier  = {(function_call | identifier) , '.'} , (function_call | identifier)
 
