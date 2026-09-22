@@ -30,10 +30,10 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] First "Hello World"
  - [X] Add new AST nodes to debug logger
  - [X] Unit tests
- - [ ] Array support
+ - [X] Array support
     - [X] Creation of multi-dimensional arrays
     - [X] Len function
-    - [ ] Unit tests
+    - [X] Unit tests
  - [ ] Object support
  - [ ] Add new error types to err.cpp
  - [ ] File imports
