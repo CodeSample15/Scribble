@@ -36,6 +36,7 @@ void test_multiple_types(string input, vector<TOK_TYPE> expected) {
         throw (test_fail) {"Type/Lexeme test", "Lex failed"};
     }
 
+    print_tokens(out);
     if(out.size() != expected.size())
         throw (test_fail) {"Type test", "Out size (" + to_string(out.size()) + ") does not match expected size (" + to_string(expected.size()) + ")"};
 
@@ -150,31 +151,31 @@ void load_lexer_tests(vector<test_t> &tests) {
 
     //testing comments
     tests.emplace_back("LEX: comments work in single line", [&]{ 
-        test_multiple_types("#hi there", {
+        test_multiple_types("//hi there", {
             TOK_TYPE::COMMENT
         }); 
     });
 
     tests.emplace_back("LEX: comments stop after line", [&]{ 
-        test_multiple_types("#hi there\nx", {
+        test_multiple_types("//hi there\nx", {
             TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });
 
     tests.emplace_back("LEX: comments work with tokens on same line", [&]{ 
-        test_multiple_types("+#hi there\nx", {
+        test_multiple_types("+//hi there\nx", {
             TOK_TYPE::PLUS, TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });
 
     tests.emplace_back("LEX: comments work on new line", [&]{ 
-        test_multiple_types("x\n#hi there\nx", {
+        test_multiple_types("x\n//hi there\nx", {
             TOK_TYPE::IDENTIFIER, TOK_TYPE::WHITESPACE, TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });
 
     tests.emplace_back("LEX: multiple comments", [&]{ 
-        test_multiple_types("#comment 1\n#hi there\nx", {
+        test_multiple_types("//comment 1\n//hi there\nx", {
             TOK_TYPE::COMMENT, TOK_TYPE::COMMENT, TOK_TYPE::IDENTIFIER
         }); 
     });

@@ -36,7 +36,7 @@ vector<Token> lex(string &source)
             type = handle_digit(fr, lexeme);
         else if(c == '"' || c == '\'')
             type = handle_string(fr, lexeme, c);
-        else if(c == '#')
+        else if(c == '/' && fr.has_next("//", lexeme, false))
             type = handle_comment(fr);
         else
             type = handle_others(fr, lexeme);
@@ -109,6 +109,7 @@ TOK_TYPE handle_string(file_reader::file_reader &fr, string &lexeme, char start)
 }
 
 TOK_TYPE handle_comment(file_reader::file_reader &fr) {
+    fr.next(); // consume both slashes
     fr.next();
     while(!fr.empty() && fr.next() != '\n');
     return TOK_TYPE::COMMENT;

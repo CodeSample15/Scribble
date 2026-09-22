@@ -100,9 +100,9 @@ fun test_branching() {
 }
 
 fun test_comments() {
-    # Nothing exciting happens here, that's the point.
-    # Make sure that comments literally do nothing.
-    # Watermelon
+    // Nothing exciting happens here, that's the point.
+    // Make sure that comments literally do nothing.
+    // Watermelon
     return 0
 }
 
@@ -144,7 +144,7 @@ fun test_variables() {
         return 1
     }
 
-    #check defaults
+    //check defaults
     float defaultFloat
     num defaultInt
     string defaultString
@@ -331,7 +331,7 @@ fun test_matrices() {
         return 1
     }
 
-    # create an identity matrix
+    // create an identity matrix
     mat[0, 0] = 1
     mat[1, 1] = 1
     mat[2, 2] = 1
@@ -358,7 +358,7 @@ fun test_matrices() {
         return 1
     }
 
-    # make a huge matrix to see if Scribble crashes or something
+    // make a huge matrix to see if Scribble crashes or something
     num[7, 6, 5, 4, 3, 2, 1] huge
 
     return 0

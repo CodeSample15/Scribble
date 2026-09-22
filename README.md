@@ -166,8 +166,8 @@ use my_library as lib
 use folder/fancy_graphics as graph
 
 num count = 0;
-num lives = 5       # optional semicolons
-OBJECT[5, 4] grid;  # arrays are fixed-size C# style dynamically allocated arrays
+num lives = 5       // optional semicolons
+OBJECT[5, 4] grid;  // arrays are fixed-size C# style dynamically allocated arrays
 
 :START: {
     lives += 1
@@ -182,7 +182,7 @@ OBJECT[5, 4] grid;  # arrays are fixed-size C# style dynamically allocated array
 
 [thread]
 fun coroutine() {
-    # can run parallel to main program
+    // can run parallel to main program
     while(true) {
         count++
     }
