@@ -64,5 +64,7 @@ int main(int argc, char** argv) {
     cout << FGRN("\t↳ Passed: ") << (total_tests - failed_tests) << endl;
     cout << FRED("\t↳ Failed: ") << failed_tests << endl;
 
+    if(failed_tests > 0)
+        return 1;
     return 0;
 }
