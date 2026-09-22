@@ -32,7 +32,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Unit tests
  - [ ] Array support
     - [X] Creation of multi-dimensional arrays
-    - [ ] Len function
+    - [X] Len function
     - [ ] Unit tests
  - [ ] Object support
  - [ ] Add new error types to err.cpp
@@ -89,7 +89,7 @@ variable_reference  = normal_var_ref
 normal_var_ref      = chained_identifier , [arr_index]
 built_in_var_ref    = '$' , identifier
 
-arr_index           = '[' , expression , {',' , expression} , ']'
+arr_index           = '[' , [expression , {',' , expression}] , ']'
 
 ASSIGN_OP           = '='
                     | '+='
