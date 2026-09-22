@@ -1,7 +1,7 @@
 num x = 3
 
 :START: {
-    repeat 5 {
+    repeat 5 # i {
         :print("i: " + i)
     }
 

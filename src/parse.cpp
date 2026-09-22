@@ -474,7 +474,7 @@ AST_Nib_Pair_t parse_repeat_loop(Nibbler nibbler) {
     nibbler = require(nibbler, TOK_TYPE::CLOSE_CURLY).first;
 
     AST_Node res(NODE_TYPE::LOOP_REPEAT);
-    push_children(res, {expression, body});
+    push_children(res, {expression, loopCounterIdent, body});
 
     return {nibbler, res};
 }
