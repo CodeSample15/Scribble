@@ -1,6 +1,10 @@
 num x = 3
 
 :START: {
+    repeat 5 # i {
+        :print("i: " + i)
+    }
+
     num[7, 3] i
     num[] test = :shape(i)
 

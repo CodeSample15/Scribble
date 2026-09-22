@@ -7,8 +7,7 @@ void log(string s) {
     cout << s << endl;
 }
 
-void print_tokens(vector<Token> &tokens) 
-{
+void print_tokens(vector<Token> &tokens) {
     for(Token& tok : tokens) {
         cout << token_to_string(tok) << endl;
     }
@@ -70,6 +69,7 @@ string tok_type_to_string(TOK_TYPE tok) {
         case IMAGE_REF: return "image ref";
         case BUILT_IN_VARIABLE_REF: return "built in variable ref";
         case SPECIAL_FUNCTION_PREFIX: return "special function prefix";
+        case LOOP_COUNTER: return "loop counter prefix";
         case AND: return "and";
         case OR: return "or";
         case NOT: return "not";

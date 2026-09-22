@@ -330,9 +330,33 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue v = eval(root->children[0], returnContext, memTable);
             size_t times = (size_t)max(0.0, extractNumValue(v, root->children[0]));
 
+            auto functionScope = newScopeWithParent(memTable);
+
+            // check if the program has a declaration for a counter variable
+            size_t childIndex = 1;
+            shared_ptr<SCRIBBLE_NUM_REP> counterVar = nullptr;
+
+            if(root->children.size() > 2) {
+                string counterName = root->children[childIndex++]->tok->lexeme;
+                counterVar = make_shared<SCRIBBLE_NUM_REP>(0);
+
+                // add the counter variable to the function scope
+                functionScope->values.push_back({
+                    counterName, 
+                    AnyValue{
+                        {1}, 
+                        counterVar, 
+                        EVAL_RES_TYPE::Num}
+                });
+            }
+
             // evaluate body of statement in a for loop
             for(size_t i=0; i<times; i++) {
-                eval(root->children[1], returnContext, newScopeWithParent(memTable));
+                eval(root->children[childIndex], returnContext, functionScope);
+
+                // if a counter variable was declared, auto increment it here
+                if(counterVar != nullptr)
+                    *counterVar += 1;
 
                 if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None && returnContext->type != EVAL_RES_TYPE::RETURN) break;
             }
