@@ -38,7 +38,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Add new error types to err.cpp
  - [ ] File imports
  - [ ] Safe global variable access
- - [ ] Improve `repeat` loops to have built in counters (better for indexing)
+ - [X] Improve `repeat` loops to have built in counters (better for indexing)
  - [ ] Short-circuit boolean expressions
 [ ] Graphics module
 [ ] Input module

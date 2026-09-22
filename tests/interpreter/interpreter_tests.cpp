@@ -86,6 +86,7 @@ void load_interpreter_tests(vector<test_t> &tests) {
     tests.emplace_back("INTERPRETER: bitwise ops", [=]{ test_function("test_bitwise", program); });
     tests.emplace_back("INTERPRETER: arrays", [=]{ test_function("test_arrays", program); });
     tests.emplace_back("INTERPRETER: matrices", [=]{ test_function("test_matrices", program); });
+    tests.emplace_back("INTERPRETER: repeat loop counters", [=]{ test_function("test_repeat_counters", program); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 }
