@@ -324,5 +324,42 @@ fun test_arrays() {
     return 0
 }
 
-fun test_matrix() {
+fun test_matrices() {
+    float[5, 5] mat
+
+    if :shape(mat)[0] != 5 || :shape(mat)[1] != 5 {
+        return 1
+    }
+
+    # create an identity matrix
+    mat[0, 0] = 1
+    mat[1, 1] = 1
+    mat[2, 2] = 1
+    mat[3, 3] = 1
+    mat[4, 4] = 1
+
+    num i, j
+    float total
+    repeat 5 {
+        j = 0
+        repeat 5 {
+            total += mat[i, j]
+            
+            if (i == j) && (mat[i, j] != 1) {
+                return 1
+            }
+            
+            j += 1
+        }
+        i += 1
+    }
+
+    if total != 5 {
+        return 1
+    }
+
+    # make a huge matrix to see if Scribble crashes or something
+    num[7, 6, 5, 4, 3, 2, 1] huge
+
+    return 0
 }
