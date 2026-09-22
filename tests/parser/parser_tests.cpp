@@ -59,6 +59,7 @@ void load_parser_tests(vector<test_t> &tests) {
 
     tests.emplace_back("PARSE: Loop 1", [&]{ test_return_type("while true {}", parse_loop, NODE_TYPE::LOOP_WHILE); });
     tests.emplace_back("PARSE: Loop 2", [&]{ test_return_type("repeat 2 {}", parse_loop, NODE_TYPE::LOOP_REPEAT); });
+    tests.emplace_back("PARSE: Loop 3", [&]{ test_return_type("repeat 2 # identifier {}", parse_loop, NODE_TYPE::LOOP_REPEAT); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
