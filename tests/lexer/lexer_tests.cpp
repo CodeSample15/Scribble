@@ -36,7 +36,6 @@ void test_multiple_types(string input, vector<TOK_TYPE> expected) {
         throw (test_fail) {"Type/Lexeme test", "Lex failed"};
     }
 
-    print_tokens(out);
     if(out.size() != expected.size())
         throw (test_fail) {"Type test", "Out size (" + to_string(out.size()) + ") does not match expected size (" + to_string(expected.size()) + ")"};
 
