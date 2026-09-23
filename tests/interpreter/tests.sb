@@ -374,7 +374,7 @@ fun test_repeat_counters() {
     }
 
     repeat :len(mat)#i {
-        repeat :len(mat[0] #j) {
+        repeat :len(mat[0]) # j {
             if mat[i, j] != i + j {
                 return 1
             }

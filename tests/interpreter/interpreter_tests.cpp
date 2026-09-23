@@ -68,6 +68,9 @@ void test_function(string funName, shared_ptr<AST_Node> program) {
             return;
         }
     }
+
+    // This error could be caused by a parser issue, check code
+    throw test_fail{"Interpreter test '" + funName + "'", "Function name not found in program (function not parsed correctly?)"};
 }
 
 void load_interpreter_tests(vector<test_t> &tests) {
