@@ -500,17 +500,25 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             break;
 
         case NODE_TYPE::EXP_ORL: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
-            bool res = extractNumValue(one, root->children[0]) || extractNumValue(two, root->children[1]);
+            bool res = extractNumValue(
+                            eval(root->children[0], returnContext, memTable), 
+                            root->children[0])
+                        || 
+                        extractNumValue(
+                            eval(root->children[1], returnContext, memTable), 
+                            root->children[1]);
 
             return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
         }
 
         case NODE_TYPE::EXP_ANDL: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
-            bool res = extractNumValue(one, root->children[0]) && extractNumValue(two, root->children[1]);
+            bool res = extractNumValue(
+                            eval(root->children[0], returnContext, memTable), 
+                            root->children[0]) 
+                        && 
+                        extractNumValue(
+                            eval(root->children[1], returnContext, memTable), 
+                            root->children[1]);
 
             return AnyValue{{1}, make_shared<bool>(res), EVAL_RES_TYPE::Bool};
         }
