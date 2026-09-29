@@ -383,3 +383,18 @@ fun test_repeat_counters() {
 
     return 0
 }
+
+fun test_short_circuit() {
+    // ideally the print statements won't run because the interpreter will short circuit and not evaluate them
+    // if they do evaluate, they will create an error since they don't return anything
+
+    if false && :print("Fail1") {}
+    if false || (true || :print("Fail2")) {}
+    if true || :print("Fail3") {}
+    if true && (false || (true || :print("Fail4"))) {}
+    if !(false || false || false || false || true || :print("Fail5")) {
+        return 1
+    }
+
+    return 0
+}
