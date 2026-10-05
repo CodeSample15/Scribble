@@ -40,6 +40,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [ ] Safe global variable access
  - [X] Improve `repeat` loops to have built in counters (better for indexing)
  - [X] Short-circuit boolean expressions
+ - [ ] Nested error reporting for functions
 [ ] Graphics module
 [ ] Input module
 
