@@ -90,7 +90,6 @@ std::string AST_node_type_to_string(NODE_TYPE node) {
         case FUNCTION_DEF: return "function def";
         case VARIABLE_REFERENCE: return "variable reference";
         case BUILT_IN_VAR_REFERENCE: return "built in variable";
-        case NORMAL_VAR_REFERENCE: return "normal variable";
         case VARIABLE_DEF: return "variable def";
         case VARIABLE_ASSIGN: return "variable assign";
         case ARR_INDEX: return "array index";

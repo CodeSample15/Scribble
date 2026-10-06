@@ -146,7 +146,7 @@ AST_Nib_Pair_t parse_variable_def(Nibbler nibbler) {
 
 // normal_var_ref | built_in_var_ref
 AST_Nib_Pair_t parse_variable_reference(Nibbler nibbler) {
-    return alt(nibbler, {parse_built_in_var_ref, parse_normal_var_ref});
+    return alt(nibbler, {parse_built_in_var_ref, parse_chained_identifier});
 }
 
 // '$' , identifier
@@ -158,19 +158,6 @@ AST_Nib_Pair_t parse_built_in_var_ref(Nibbler nibbler) {
     tmp.type = NODE_TYPE::BUILT_IN_VAR_REFERENCE;
 
     return {nibbler, tmp};
-}
-
-// chained_identifier , [arr_index]
-AST_Nib_Pair_t parse_normal_var_ref(Nibbler nibbler) {
-    AST_Node identifier, arr_index;
-    
-    tie(nibbler, identifier) = parse_chained_identifier(nibbler);
-    tie(nibbler, arr_index) = opt(nibbler, parse_arr_index);
-
-    AST_Node res(NODE_TYPE::VARIABLE_REFERENCE);
-    push_children(res, {identifier, arr_index});
-
-    return {nibbler, res};
 }
 
 // variable_reference , ASSIGN_OP , expression
@@ -356,7 +343,8 @@ AST_Nib_Pair_t parse_body(Nibbler nibbler) {
             parse_branch, 
             parse_loop, 
             parse_variable_reference,
-            parse_return_statement});
+            parse_return_statement
+        });
         n = opt(n, TOK_TYPE::SEMICOLON).first;
 
         return (AST_Nib_Pair_t){n, res};
@@ -611,23 +599,32 @@ AST_Nib_Pair_t expression_seg_parse(Nibbler nibbler, std::function< AST_Nib_Pair
 
 //{(function_call | identifier) , '.'} , (function_call | identifier)
 AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
-    AST_Node children;
+    node_vec_t chain;
 
-    nibbler = many_0_lambda(nibbler, [&](Nibbler n){
-        AST_Node tmp;
+    tie(nibbler, chain) = many_0(nibbler, [&](Nibbler n){
+        AST_Node tmp, indx;
         tie(n, tmp) = alt(n, {parse_function_call, parse_identifier});
+        tie(n, indx) = opt(n, parse_arr_index);
         n = require(n, TOK_TYPE::DOT).first;
 
-        tmp.children.push_back(make_shared<AST_Node>(children));
-        children = tmp;
+        AST_Node res(NODE_TYPE::VARIABLE_REFERENCE);
+        res.tok = tmp.tok;
+        push_children(res, {tmp, indx});
 
-        return n;
+        return AST_Nib_Pair_t{n, res};
     });
 
-    AST_Node res;
-    tie(nibbler, res) = alt(nibbler, { parse_built_in_function_call, parse_function_call, parse_identifier });
+    AST_Node tmp, indx;
+    tie(nibbler, tmp) = alt(nibbler, { parse_built_in_function_call, parse_function_call, parse_identifier });
+    tie(nibbler, indx) = opt(nibbler, parse_arr_index);
 
-    push_children(res, {children});
+    AST_Node last(NODE_TYPE::VARIABLE_REFERENCE);
+    last.tok = tmp.tok;
+    push_children(last, {tmp, indx});
+
+    AST_Node res(last.type);
+    push_children(res, chain);
+    push_children(res, {last});
 
     return {nibbler, res};
 }
