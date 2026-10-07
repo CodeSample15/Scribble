@@ -27,8 +27,8 @@ void test_return_type(string input, std::function<AST_Nib_Pair_t(Nibbler)> parse
 
 void load_parser_tests(vector<test_t> &tests) {
     tests.emplace_back("PARSE: Identifier 1", [&]{ test_return_type("a", parse_identifier, NODE_TYPE::IDENT); });
-    tests.emplace_back("PARSE: Identifier 2", [&]{ test_return_type("a.b.c", parse_chained_identifier, NODE_TYPE::IDENT); });
-    tests.emplace_back("PARSE: Identifier 3", [&]{ test_return_type("a", parse_chained_identifier, NODE_TYPE::IDENT); });
+    tests.emplace_back("PARSE: Identifier 2", [&]{ test_return_type("a.b.c", parse_chained_identifier, NODE_TYPE::CHAIN); });
+    tests.emplace_back("PARSE: Identifier 3", [&]{ test_return_type("a", parse_chained_identifier, NODE_TYPE::VARIABLE_REFERENCE); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
