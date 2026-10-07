@@ -622,7 +622,7 @@ AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
     last.tok = tmp.tok;
     push_children(last, {tmp, indx});
 
-    AST_Node res(last.type);
+    AST_Node res(chain.size()>1 ? NODE_TYPE::CHAIN : NODE_TYPE::VARIABLE_REFERENCE);
     push_children(res, chain);
     push_children(res, {last});
 
