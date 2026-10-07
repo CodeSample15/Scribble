@@ -41,6 +41,7 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Improve `repeat` loops to have built in counters (better for indexing)
  - [X] Short-circuit boolean expressions
  - [ ] Nested error reporting for functions
+ - [ ] Add rule to interpreter where same name variables in the same scope are not allowed
 [ ] Graphics module
 [ ] Input module
 

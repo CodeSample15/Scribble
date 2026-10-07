@@ -625,7 +625,7 @@ AST_Nib_Pair_t parse_chained_identifier(Nibbler nibbler) {
     if(chain.size() == 0)
         return {nibbler, last};
 
-    AST_Node res(chain.size()>1 ? NODE_TYPE::CHAIN : NODE_TYPE::VARIABLE_REFERENCE);
+    AST_Node res(NODE_TYPE::CHAIN);
     push_children(res, chain);
     push_children(res, {last});
 

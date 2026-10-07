@@ -1,7 +1,7 @@
 :START: {
-    num[5] test
+    Object test
 
-    test[0] = 1
+    test.draw()
 }
 
 :UPDATE: {
