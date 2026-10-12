@@ -2,6 +2,7 @@
 
 #include "interpreter.hpp"
 #include "runtime/built_in.hpp"
+#include "runtime/templates.hpp"
 #include "debug.hpp"
 
 using namespace Interpreter;
@@ -30,6 +31,7 @@ AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
+void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<SymbolTable> memTable);
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type);
 
@@ -261,16 +263,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             // index variable if one is provided
             if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
-                vector<int> index;
-                for(auto &indexNode : root->children[1]->children) {
-                    AnyValue dim = eval(indexNode, returnContext, memTable);
-                    index.push_back(
-                        extractNumValue(dim, indexNode)
-                    );
-                }
-
                 try {
-                    *foundValue = valueFromArrayIndex(*foundValue, index);
+                    indexVariable(foundValue.get(), root->children[1].get(), memTable);
                 } catch(ScribbleErr &e) {
                     throwScribbleError(root->children[0], e.msg, e.type);
                 }
@@ -281,6 +275,45 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             //TODO: search global memory
 
+            break;
+        }
+
+        case NODE_TYPE::CHAIN: {
+            // Evaluate first node in the chain
+            AnyValue tmp = eval(root->children[0], returnContext, memTable);
+
+            for(size_t i=1; i < root->children.size(); i++) {
+                // in order for the next node in the chain to access something in tmp, tmp must be something that can be accessed via `.`
+                checkForAllowedDtype(tmp, {EVAL_RES_TYPE::Object}, root->children[0]);
+
+                TemplateObjects::VariableWithProperties* casted = (TemplateObjects::VariableWithProperties*)tmp.value.get();
+                auto varRef = root->children[i];
+                if(varRef->children[0]->type == NODE_TYPE::FUNCTION_CALL) {
+                    auto funCall = varRef->children[0];
+
+                    vector<AnyValue> args;
+                    if(funCall->children.size() > 1) {
+                        for(auto &a : funCall->children[1]->children) {
+                            args.emplace_back(eval(a, returnContext, memTable));
+                        }
+                    }
+
+                    // First child of a function call is an identifier node with the name of the function
+                    tmp = casted->CallFunction(funCall->children[0]->tok->lexeme, args);
+                }
+                else if(varRef->children[0]->type == NODE_TYPE::IDENT) {
+                    tmp = casted->GetValue(varRef->children[0]->tok->lexeme);
+                }
+
+                // Check for variable index
+                if(varRef->children.size() > 1 && varRef->children[1]->type == NODE_TYPE::ARR_INDEX) {
+                    try {
+                        indexVariable(&tmp, root->children[1].get(), memTable);
+                    } catch(ScribbleErr &e) {
+                        throwScribbleError(root->children[0], e.msg, e.type);
+                    }
+                }
+            }
             break;
         }
 
@@ -783,7 +816,7 @@ shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
         case EVAL_RES_TYPE::String:
             return make_shared<string>("");
         case EVAL_RES_TYPE::Object:
-            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
+            return make_shared<TemplateObjects::Object>();
         default:
             break; // TODO: custom values
     }
@@ -804,8 +837,10 @@ shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
             return make_shared<bool>(*(bool*)val.get());
         case EVAL_RES_TYPE::String:
             return make_shared<string>(*(string*)val.get());
-        case EVAL_RES_TYPE::Object:
-            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
+        case EVAL_RES_TYPE::Object: {
+            TemplateObjects::Object clone((TemplateObjects::Object*)val.get());
+            return make_shared<TemplateObjects::Object>(clone);
+        }
         default:
             break; // TODO: custom values
     }
@@ -910,6 +945,18 @@ void castAndAssign(AnyValue &val, double newVal, bool inPlace) {
             log("Interpreter -> castAndAssign: Unexpected data type"); // Technically a developer error, not a user error, no need to throw
             break;
     }
+}
+
+void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<SymbolTable> memTable) {
+    vector<int> index;
+    for(auto &indexNode : idx->children) {
+        AnyValue dim = eval(indexNode, nullptr, memTable);
+        index.push_back(
+            extractNumValue(dim, indexNode)
+        );
+    }
+
+    *val = valueFromArrayIndex(*val, index);
 }
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type) {
