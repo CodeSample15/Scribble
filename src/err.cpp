@@ -11,12 +11,19 @@ void PrintSErrMessage(ScribbleErr e, string &source) {
     for(size_t i=0; i<e.col; i++) col_spacing += ' ';
 
     cout << "----------- Scribble error -----------" << endl;
-    cout << endl;
-    cout << "  " << e.line+1 << ": " << get_line_from_source(source, e.line) << endl;
-    cout << "     " << col_spacing << "^" << endl;
-    cout << "  " << errmsg(e.type) << endl;
-    if(e.msg.size()!=0) 
-        cout << "    " << e.msg << endl;
+    while(true) {
+        cout << endl;
+        cout << "  " << e.line+1 << ": " << get_line_from_source(source, e.line) << endl;
+        cout << "     " << col_spacing << "^" << endl;
+        cout << "  " << errmsg(e.type) << endl;
+        if(e.msg.size()!=0) 
+            cout << "    " << e.msg << endl;
+
+        if(e.parent == nullptr)
+            break;
+        e = *e.parent.get();
+        cout << "--------------------------------------" << endl;
+    };
     cout << "--------------------------------------" << endl;
 }
 
