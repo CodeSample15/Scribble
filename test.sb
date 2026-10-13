@@ -7,6 +7,11 @@
 }
 
 fun badFunc() {
+    otherBadFunc()
+    :print("Done")
+}
+
+fun otherBadFunc() {
     Object test
 
     test.x.z = 1
