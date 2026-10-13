@@ -1,11 +1,20 @@
 :START: {
+    badFunc()
+}
+
+:UPDATE: {
+    return 0
+}
+
+fun badFunc() {
+    otherBadFunc()
+    :print("Done")
+}
+
+fun otherBadFunc() {
     Object test
 
     test.x.z = 1
     test.y = test.x + 2
     :print(""+test.y)
-}
-
-:UPDATE: {
-    return 0
 }

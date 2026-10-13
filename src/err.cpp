@@ -7,17 +7,22 @@ string errmsg(ERR_TYPE t);
 string get_line_from_source(string &source, size_t line_num);
 
 void PrintSErrMessage(ScribbleErr e, string &source) {
-    string col_spacing = "";
-    for(size_t i=0; i<e.col; i++) col_spacing += ' ';
-
     cout << "----------- Scribble error -----------" << endl;
-    cout << endl;
-    cout << "  " << e.line+1 << ": " << get_line_from_source(source, e.line) << endl;
-    cout << "     " << col_spacing << "^" << endl;
-    cout << "  " << errmsg(e.type) << endl;
-    if(e.msg.size()!=0) 
-        cout << "    " << e.msg << endl;
-    cout << "--------------------------------------" << endl;
+    while(true) {
+        string col_spacing = "";
+        for(size_t i=0; i<e.col + to_string(e.line+1).size(); i++) col_spacing += ' ';
+
+        cout << endl;
+        cout << "  " << e.line+1 << ": " << get_line_from_source(source, e.line) << endl;
+        cout << "    " << col_spacing << "^" << endl;
+        cout << "  " << errmsg(e.type) << endl;
+        if(e.msg.size()!=0)
+            cout << "    " << e.msg << endl;
+        cout << "--------------------------------------" << endl;
+        if(e.parent == nullptr)
+            break;
+        e = *e.parent.get();
+    };
 }
 
 string errmsg(ERR_TYPE t) {

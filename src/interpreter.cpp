@@ -33,7 +33,7 @@ double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
 void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<SymbolTable> memTable);
 
-void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type);
+void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type, shared_ptr<ScribbleErr> parent=nullptr);
 
 void Interpreter::InitRuntime() {
     StartFunction = nullptr;
@@ -307,7 +307,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     }
 
                     // First child of a function call is an identifier node with the name of the function
-                    tmp = casted->CallFunction(funCall->children[0]->tok->lexeme, args);
+                    try {
+                        tmp = casted->CallFunction(funCall->children[0]->tok->lexeme, args);
+                    } catch (ScribbleErr &e) {
+                        // throw with parent
+                        throwScribbleError(funCall->children[0], "Error in function", e.type, make_shared<ScribbleErr>(e));
+                    }
                 }
                 else if(varRef->children[0]->type == NODE_TYPE::IDENT) {
                     // next item is a variable
@@ -494,13 +499,18 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     }
                 }
             } else {
-              throwScribbleError(root->children[0], "Invalid number of arguments. Expected: " + to_string(params.size()) + ", got: " + to_string(args.size()), ERR_TYPE::INVALID_FUN_CALL);  
+                throwScribbleError(root->children[0], "Invalid number of arguments. Expected: " + to_string(params.size()) + ", got: " + to_string(args.size()), ERR_TYPE::INVALID_FUN_CALL);  
             }
 
             // evaluate function call
             auto funcReturnCtx = make_shared<AnyValue>();
             funcReturnCtx->type = EVAL_RES_TYPE::None;
-            eval(funPtr->children[funPtr->children.size()-1], funcReturnCtx, funMemTable);
+
+            try {
+                eval(funPtr->children[funPtr->children.size()-1], funcReturnCtx, funMemTable);
+            } catch (ScribbleErr &e) {
+                throwScribbleError(root->children[0], "Error in called function", e.type, make_shared<ScribbleErr>(e));
+            }
 
             // return value if value returned
             if(funcReturnCtx != nullptr && funcReturnCtx->type != EVAL_RES_TYPE::None && funcReturnCtx->type != EVAL_RES_TYPE::RETURN)
@@ -972,7 +982,7 @@ void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<SymbolTable> memTabl
     *val = valueFromArrayIndex(*val, index);
 }
 
-void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type) {
+void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type, shared_ptr<ScribbleErr> parent) {
     size_t l = 0, c = 0;
 
     if(node != nullptr && node->tok != nullptr) {
@@ -980,5 +990,5 @@ void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type
         c = node->tok->start_col;
     }
 
-    throw ScribbleErr {l, c, message, type};
+    throw ScribbleErr {l, c, message, type, parent};
 }

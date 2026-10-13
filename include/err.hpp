@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 typedef enum {
     // general errors
@@ -39,6 +40,8 @@ struct ScribbleErr {
     size_t col;
     std::string msg;
     ERR_TYPE type;
+
+    std::shared_ptr<ScribbleErr> parent=nullptr;
 };
 
 void PrintSErrMessage(ScribbleErr err, std::string &source);
