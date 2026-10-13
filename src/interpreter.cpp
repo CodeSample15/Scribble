@@ -441,6 +441,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             string ident = root->children[0]->type == NODE_TYPE::IDENT ?
                             root->children[0]->tok->lexeme : root->children[1]->tok->lexeme;
 
+            if(Functions.find(ident) != Functions.end())
+                throwScribbleError(root->children[0], "Function name already exists", ERR_TYPE::BAD_NAME);
+
             Functions.insert({ident, root});
             break;
         }
