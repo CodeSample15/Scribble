@@ -1,28 +1,9 @@
-num x = 3
-
 :START: {
-    repeat 5 # i {
-        :print("i: " + i)
-    }
+    Object test
 
-    num[7, 3] i
-    num[] test = :shape(i)
-
-    num fahh = 0
-    :print(""+test[fahh])
-
-    :print(""+i[0, 2])
-    i[0, 0] = 1
-
-    :print("Hi")
-    
-    num count = 0
-    repeat 2 {
-        :print(""+:shape(i)[count])
-        count += 1
-    }
-
-    :print("Success")
+    test.x.z = 1
+    test.y = test.x + 2
+    :print(""+test.y)
 }
 
 :UPDATE: {

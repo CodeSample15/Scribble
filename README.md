@@ -40,6 +40,8 @@ There are countless ways to develop video games and graphical applications. Howe
  - [ ] Safe global variable access
  - [X] Improve `repeat` loops to have built in counters (better for indexing)
  - [X] Short-circuit boolean expressions
+ - [ ] Nested error reporting for functions
+ - [ ] Add rule to interpreter where same name variables in the same scope are not allowed
 [ ] Graphics module
 [ ] Input module
 
@@ -84,10 +86,9 @@ body                = {(variable_def
 variable_def        = VARTYPE , identifier , {',' , identifier} , ['=' , expression]
 variable_assign     = variable_reference , ASSIGN_OP , expression
 
-variable_reference  = normal_var_ref
+variable_reference  = chained_identifier
                     | built_in_var_ref
                     
-normal_var_ref      = chained_identifier , [arr_index]
 built_in_var_ref    = '$' , identifier
 
 arr_index           = '[' , [expression , {',' , expression}] , ']'
@@ -114,7 +115,7 @@ loop                = while_loop | repeat_loop
 while_loop          = 'while' , expression , '{' , body , '}'
 repeat_loop         = 'repeat' , expression , ['#' , identifier] , '{' , body , '}'
 
-chained_identifier  = {(function_call | identifier) , '.'} , (function_call | identifier)
+chained_identifier  = {(function_call | identifier) , [arr_index] , '.'} , (function_call | identifier) , [arr_index]
 
 # mathematical and boolean expressions
 expression          = exp_orl
