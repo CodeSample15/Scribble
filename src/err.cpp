@@ -59,6 +59,8 @@ string errmsg(ERR_TYPE t) {
             return "Invalid symbol";
         case ERR_TYPE::INVALID_OPERATION:
             return "Invalid operation";
+        case ERR_TYPE::BAD_NAME:
+            return "Bad name for value";
         case ERR_TYPE::OOB:
             return "Out of bounds";
         default:

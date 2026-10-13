@@ -1,4 +1,5 @@
 #include <cmath>
+#include <algorithm>
 
 #include "interpreter.hpp"
 #include "runtime/built_in.hpp"
@@ -116,7 +117,21 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // get every new variable name from the second child onwards
             size_t i=1;
             for(; i<root->children.size() && root->children[i]->type == NODE_TYPE::IDENT; i++) {
-                idents.push_back(root->children[i]->tok->lexeme);
+                string nextName = root->children[i]->tok->lexeme;
+
+                if(find(idents.begin(), idents.end(), nextName) != idents.end()) {
+                    throwScribbleError(root->children[i], "Cannot make multiple variables of the same name", ERR_TYPE::BAD_NAME);
+                }
+
+                // check current scope for duplicate values
+                if (memTable != nullptr) {
+                    for(auto &var : memTable->values) {
+                        if(var.first == nextName)
+                            throwScribbleError(root->children[i], "Variable name already exists in current scope", ERR_TYPE::BAD_NAME);
+                    }
+                }
+
+                idents.push_back(nextName);
             }
 
             if(!arr) {

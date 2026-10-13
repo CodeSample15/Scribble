@@ -27,6 +27,7 @@ typedef enum {
     INVALID_ASSIGNMENT, // invalid value assignment
     INVALID_SYMBOL,     // symbol not found
     INVALID_OPERATION,  // invalid operation
+    BAD_NAME,           // bad name for value
     OOB,                // out of bounds
 } ERR_TYPE;
 

@@ -1,4 +1,5 @@
 :START: {
+    num i
     badFunc()
 }
 
