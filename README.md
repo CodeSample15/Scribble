@@ -22,8 +22,10 @@ There are countless ways to develop video games and graphical applications. Howe
 
 [X] Lexer
  - [X] Unit tests
+
 [X] Parser
  - [X] Unit tests
+
 [ ] Interpreter
  - [X] General outline + interpreting expressions
  - [X] Built in function support
@@ -42,7 +44,9 @@ There are countless ways to develop video games and graphical applications. Howe
  - [X] Short-circuit boolean expressions
  - [X] Nested error reporting for functions
  - [X] Add rule to interpreter where same name variables in the same scope are not allowed
+
 [ ] Graphics module
+
 [ ] Input module
 
 ## Language Grammar
