@@ -22,19 +22,19 @@ TemplateObjects::Object::Object() {
 
     variables.push_back({"width", AnyValue{
         {1},
-        make_shared<SCRIBBLE_FLOAT_REP>(0),
+        make_shared<SCRIBBLE_FLOAT_REP>(5),
         EVAL_RES_TYPE::Float
     }});
 
     variables.push_back({"height", AnyValue{
         {1},
-        make_shared<SCRIBBLE_FLOAT_REP>(0),
+        make_shared<SCRIBBLE_FLOAT_REP>(5),
         EVAL_RES_TYPE::Float
     }});
 
     variables.push_back({"visible", AnyValue{
         {1},
-        make_shared<bool>(false),
+        make_shared<bool>(true),
         EVAL_RES_TYPE::Bool
     }});
 }

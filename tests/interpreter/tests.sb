@@ -398,3 +398,34 @@ fun test_short_circuit() {
 
     return 0
 }
+
+fun test_objects() {
+    Object test
+
+    // test default values
+    if test.x != 0 || test.y != 0 || !test.visible {
+        return 1
+    }
+
+    test.x = 5
+    if test.x != 5 {
+        return 1
+    }
+
+    test.y = 5 + test.x
+    if test.y != 10 {
+        return 1
+    }
+
+    test.x += 1
+    if test.x != 6 {
+        return 1
+    }
+
+    test.y -= 1
+    if test.y != 9 {
+        return 1
+    }
+
+    return 0
+}
