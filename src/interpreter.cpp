@@ -296,6 +296,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 TemplateObjects::VariableWithProperties* casted = (TemplateObjects::VariableWithProperties*)tmp.value.get();
                 auto varRef = root->children[i];
                 if(varRef->children[0]->type == NODE_TYPE::FUNCTION_CALL) {
+                    // next item in the chain is a function call
                     auto funCall = varRef->children[0];
 
                     vector<AnyValue> args;
@@ -309,6 +310,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     tmp = casted->CallFunction(funCall->children[0]->tok->lexeme, args);
                 }
                 else if(varRef->children[0]->type == NODE_TYPE::IDENT) {
+                    // next item is a variable
                     tmp = casted->GetValue(varRef->children[0]->tok->lexeme);
                 }
 
@@ -694,6 +696,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                         case EVAL_RES_TYPE::Float:
                             res += to_string(*(SCRIBBLE_FLOAT_REP*)t.value.get());
                             break;
+                        case EVAL_RES_TYPE::Bool:
+                            res += *(bool*)t.value.get() ? "true" : "false";
+                            break;
                         default:
                             throwScribbleError(root, "Unexpected type when combining strings", ERR_TYPE::BAD_TYPE);
                             break;
@@ -945,7 +950,7 @@ void castAndAssign(AnyValue &val, double newVal, bool inPlace) {
             break;
         case EVAL_RES_TYPE::Bool:
             if(inPlace)
-                *(bool*)val.value.get() = (bool)inPlace;
+                *(bool*)val.value.get() = (bool)newVal;
             else
                 val.value = make_shared<bool>((bool)newVal);
             break;

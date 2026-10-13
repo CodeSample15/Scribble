@@ -427,5 +427,23 @@ fun test_objects() {
         return 1
     }
 
+    Object[5] enemies
+    enemies[0].x += 1
+    if enemies[0].x != 1 || enemies[1].x != 0 {
+        return 1
+    }
+
+    repeat :len(enemies) #i {
+        enemies[i].x = 5
+        enemies[i].visible = false
+    }
+
+    repeat :len(enemies) # i {
+        if enemies[i].x != 5 || enemies[i].visible {
+            :print(""+i+" "+enemies[i].visible)
+            return 1
+        }
+    }
+
     return 0
 }
