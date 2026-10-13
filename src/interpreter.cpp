@@ -122,10 +122,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             if(!arr) {
                 // get the assigned value or the default vale for the new variable
                 if(i < root->children.size()) {
+                    // User specified a starting value, assign it to the value
                     val = eval(root->children[i], returnContext, memTable);
                     checkForAllowedDtype(val, {dtype}, root->children[i]);
                 } 
                 else {
+                    // No user specified starting value, use default
                     val = AnyValue{{1}, defaultValueFor(dtype), dtype};
                 }
             } else {
@@ -166,7 +168,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // get reference to target variable
             AnyValue targetRef = eval(root->children[0], returnContext, memTable);
             if(targetRef.dimension.size() != 1 || targetRef.dimension[0] != 1)
-                throwScribbleError(root->children[0], "Cannot assign value to collection", ERR_TYPE::BAD_TYPE);
+                throwScribbleError(root->children[1], "Cannot assign value to collection", ERR_TYPE::BAD_TYPE);
 
             // =, +=, -=, etc
             TOK_TYPE assignOp = root->children[1]->tok->type;
@@ -284,7 +286,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             for(size_t i=1; i < root->children.size(); i++) {
                 // in order for the next node in the chain to access something in tmp, tmp must be something that can be accessed via `.`
-                checkForAllowedDtype(tmp, {EVAL_RES_TYPE::Object}, root->children[0]);
+                try {
+                    checkForAllowedDtype(tmp, {EVAL_RES_TYPE::Object}, root->children[i]);
+                } catch(ScribbleErr &e) {
+                    // catch error and throw new one with better error message and type
+                    throwScribbleError(root->children[i-1], "Value has no fields to access", ERR_TYPE::BAD_TYPE);
+                }
 
                 TemplateObjects::VariableWithProperties* casted = (TemplateObjects::VariableWithProperties*)tmp.value.get();
                 auto varRef = root->children[i];
@@ -314,7 +321,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     }
                 }
             }
-            break;
+
+            return tmp;
         }
 
         case NODE_TYPE::START_FUNC:

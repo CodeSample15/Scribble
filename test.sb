@@ -1,7 +1,9 @@
 :START: {
     Object test
 
-    test.draw()
+    test.x.z = 1
+    test.y = test.x + 2
+    :print(""+test.y)
 }
 
 :UPDATE: {

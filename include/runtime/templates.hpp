@@ -22,7 +22,7 @@ namespace TemplateObjects {
         Interpreter::AnyValue CallFunction(std::string name, std::vector<Interpreter::AnyValue> args);
         Interpreter::AnyValue GetValue(std::string name);
     private:
-        //SCRIBBLE_FLOAT_REP x, y;
+        SymbolTableValues variables;
         //Image img;
     };
 
