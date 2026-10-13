@@ -20,34 +20,30 @@ There are countless ways to develop video games and graphical applications. Howe
 
 ## Progress
 
-[X] Lexer
- - [X] Unit tests
-
-[X] Parser
- - [X] Unit tests
-
-[ ] Interpreter
- - [X] General outline + interpreting expressions
- - [X] Built in function support
- - [X] First "Hello World"
- - [X] Add new AST nodes to debug logger
- - [X] Unit tests
- - [X] Array support
-    - [X] Creation of multi-dimensional arrays
-    - [X] Len function
+- [X] Lexer
     - [X] Unit tests
- - [X] (Basic) Object support
- - [X] Add new error types to err.cpp
- - [ ] File imports
- - [ ] Safe global variable access
- - [X] Improve `repeat` loops to have built in counters (better for indexing)
- - [X] Short-circuit boolean expressions
- - [X] Nested error reporting for functions
- - [X] Add rule to interpreter where same name variables in the same scope are not allowed
-
-[ ] Graphics module
-
-[ ] Input module
+- [X] Parser
+    - [X] Unit tests
+- [ ] Interpreter
+    - [X] General outline + interpreting expressions
+    - [X] Built in function support
+    - [X] First "Hello World"
+    - [X] Add new AST nodes to debug logger
+    - [X] Unit tests
+    - [X] Array support
+        - [X] Creation of multi-dimensional arrays
+        - [X] Len function
+        - [X] Unit tests
+    - [X] (Basic) Object support
+    - [X] Add new error types to err.cpp
+    - [ ] File imports
+    - [ ] Safe global variable access
+    - [X] Improve `repeat` loops to have built in counters (better for indexing)
+    - [X] Short-circuit boolean expressions
+    - [X] Nested error reporting for functions
+    - [X] Add rule to interpreter where same name variables in the same scope are not allowed
+- [ ] Graphics module
+- [ ] Input module
 
 ## Language Grammar
 ```EBNF
