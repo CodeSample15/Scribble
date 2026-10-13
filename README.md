@@ -34,7 +34,7 @@ There are countless ways to develop video games and graphical applications. Howe
     - [X] Creation of multi-dimensional arrays
     - [X] Len function
     - [X] Unit tests
- - [ ] Object support
+ - [X] (Basic) Object support
  - [X] Add new error types to err.cpp
  - [ ] File imports
  - [ ] Safe global variable access
