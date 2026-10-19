@@ -295,9 +295,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                         }
                     }
                 } 
-                else if(foundValue == nullptr) {
+                
+                if(foundValue == nullptr)
                     throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
-                }
             }
 
             // TODO: figure out what could possibly cause this error to be triggered
