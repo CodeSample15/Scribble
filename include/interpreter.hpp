@@ -52,5 +52,5 @@ namespace Interpreter {
     extern std::unordered_map<std::string, EVAL_RES_TYPE> ValidDTypes;
 
     void InitRuntime();
-    AnyValue eval(std::shared_ptr<AST_Node> root, std::shared_ptr<AnyValue> returnContext, std::shared_ptr<SymbolTable> memTable=nullptr);
+    AnyValue eval(std::shared_ptr<AST_Node> root, std::shared_ptr<AnyValue> returnContext, std::shared_ptr<std::vector<size_t>> ownedGlobalVariables=nullptr, std::shared_ptr<SymbolTable> memTable=nullptr);
 }
