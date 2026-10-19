@@ -32,7 +32,7 @@ AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index);
 pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
 double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
 void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
-void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<SymbolTable> memTable);
+void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<vector<size_t>> ownedGlobalVariables, shared_ptr<SymbolTable> memTable);
 
 void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type, shared_ptr<ScribbleErr> parent=nullptr);
 
@@ -53,7 +53,7 @@ void Interpreter::InitRuntime() {
     BuiltIn::init(BuiltInVariables, BuiltInFunctions);
 }
 
-AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> returnContext, shared_ptr<SymbolTable> memTable) {
+AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> returnContext, shared_ptr<vector<size_t>> ownedGlobalVariables, shared_ptr<SymbolTable> memTable) {
     if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None) 
         return *returnContext;
 
@@ -62,20 +62,20 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             InitRuntime();
 
             for(auto& node : root.get()->children)
-                eval(node, nullptr, memTable);
+                eval(node, nullptr, ownedGlobalVariables, memTable);
             
             if(StartFunction==nullptr) throwScribbleError(root, ":START: function", ERR_TYPE::MISSING_REQUIRED);
             if(UpdateFunction==nullptr) throwScribbleError(root, ":UPDATE: function", ERR_TYPE::MISSING_REQUIRED);
 
             // Run start function
-            eval(StartFunction->children[0], make_shared<AnyValue>(), newScopeWithParent(memTable));
+            eval(StartFunction->children[0], make_shared<AnyValue>(), ownedGlobalVariables, newScopeWithParent(memTable));
 
             // Run main loop
             // TODO: Include method of gracefully breaking out of this loop through the graphical window
             auto updateFunctionReturnCtx = make_shared<AnyValue>();
             updateFunctionReturnCtx->type = EVAL_RES_TYPE::None;
             while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None) {
-                eval(UpdateFunction->children[0], updateFunctionReturnCtx, newScopeWithParent(memTable));
+                eval(UpdateFunction->children[0], updateFunctionReturnCtx, ownedGlobalVariables, newScopeWithParent(memTable));
                 BuiltIn::update(BuiltInVariables);
             }
             break;
@@ -104,7 +104,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     autoArr = true;
 
                 for(auto &indexNode : root->children[0]->children[0]->children) {
-                    AnyValue dim = eval(indexNode, returnContext, memTable);
+                    AnyValue dim = eval(indexNode, returnContext, ownedGlobalVariables, memTable);
                     int dimVal = extractNumValue(dim, indexNode);
 
                     if(dimVal < 1)
@@ -138,7 +138,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 // get the assigned value or the default vale for the new variable
                 if(i < root->children.size()) {
                     // User specified a starting value, assign it to the value
-                    val = eval(root->children[i], returnContext, memTable);
+                    val = eval(root->children[i], returnContext, ownedGlobalVariables, memTable);
                     checkForAllowedDtype(val, {dtype}, root->children[i]);
                 } 
                 else {
@@ -150,7 +150,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 if(i < root->children.size()) {
                     if(autoArr) {
                         // get the assigned value or the default vale for the new variable
-                        val = eval(root->children[i], returnContext, memTable);
+                        val = eval(root->children[i], returnContext, ownedGlobalVariables, memTable);
                         checkForAllowedDtype(val, {dtype}, root->children[i]);
                     } else {
                         throwScribbleError(root->children[0], "Cannot assign single value to array", ERR_TYPE::BAD_ASSIGNMENT);
@@ -181,7 +181,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
         case NODE_TYPE::VARIABLE_ASSIGN: {
             // get reference to target variable
-            AnyValue targetRef = eval(root->children[0], returnContext, memTable);
+            AnyValue targetRef = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             if(targetRef.dimension.size() != 1 || targetRef.dimension[0] != 1)
                 throwScribbleError(root->children[1], "Cannot assign value to collection", ERR_TYPE::BAD_TYPE);
 
@@ -189,7 +189,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             TOK_TYPE assignOp = root->children[1]->tok->type;
 
             // evaluate new value
-            AnyValue assignValue = eval(root->children[2], returnContext, memTable);
+            AnyValue assignValue = eval(root->children[2], returnContext, ownedGlobalVariables, memTable);
 
             // assign value
             if(isPrimitive(targetRef.type) && isPrimitive(assignValue.type)) {
@@ -252,7 +252,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             // function calls can represent a value, check to see if this is a function call
             if(root->children[0]->type == NODE_TYPE::FUNCTION_CALL || root->children[0]->type == NODE_TYPE::BUILT_IN_FUNCTION_CALL) {
-                foundValue = make_shared<AnyValue>(eval(root->children[0], returnContext, memTable));
+                foundValue = make_shared<AnyValue>(eval(root->children[0], returnContext, ownedGlobalVariables, memTable));
             } else {
                 // get the name of the variable to search memory for
                 string ident = root->children[0]->tok->lexeme;
@@ -281,7 +281,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             // index variable if one is provided
             if(root->children.size() > 1 && root->children[1]->type == NODE_TYPE::ARR_INDEX) {
                 try {
-                    indexVariable(foundValue.get(), root->children[1].get(), memTable);
+                    indexVariable(foundValue.get(), root->children[1].get(), ownedGlobalVariables, memTable);
                 } catch(ScribbleErr &e) {
                     throwScribbleError(root->children[0], e.msg, e.type);
                 }
@@ -297,7 +297,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
         case NODE_TYPE::CHAIN: {
             // Evaluate first node in the chain
-            AnyValue tmp = eval(root->children[0], returnContext, memTable);
+            AnyValue tmp = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
 
             for(size_t i=1; i < root->children.size(); i++) {
                 // in order for the next node in the chain to access something in tmp, tmp must be something that can be accessed via `.`
@@ -317,7 +317,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     vector<AnyValue> args;
                     if(funCall->children.size() > 1) {
                         for(auto &a : funCall->children[1]->children) {
-                            args.emplace_back(eval(a, returnContext, memTable));
+                            args.emplace_back(eval(a, returnContext, ownedGlobalVariables, memTable));
                         }
                     }
 
@@ -337,7 +337,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 // Check for variable index
                 if(varRef->children.size() > 1 && varRef->children[1]->type == NODE_TYPE::ARR_INDEX) {
                     try {
-                        indexVariable(&tmp, root->children[1].get(), memTable);
+                        indexVariable(&tmp, root->children[1].get(), ownedGlobalVariables, memTable);
                     } catch(ScribbleErr &e) {
                         throwScribbleError(root->children[0], e.msg, e.type);
                     }
@@ -360,7 +360,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None) 
                     return *returnContext;
 
-                eval(node, returnContext, memTable);
+                eval(node, returnContext, ownedGlobalVariables, memTable);
             }
             break;
 
@@ -369,17 +369,17 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 switch(b->type) {
                     case NODE_TYPE::BRANCH_IF:
                     case NODE_TYPE::BRANCH_ELSE_IF: {
-                        AnyValue e = eval(b->children[0], returnContext, memTable);
+                        AnyValue e = eval(b->children[0], returnContext, ownedGlobalVariables, memTable);
                         double t = extractNumValue(e, b->children[0]);
                         if(t != 0) {
-                            eval(b->children[1], returnContext, newScopeWithParent(memTable));
+                            eval(b->children[1], returnContext, ownedGlobalVariables, newScopeWithParent(memTable));
                             return AnyValue{};
                         }
                         
                         break;
                     }
                     case NODE_TYPE::BRANCH_ELSE:
-                        eval(b->children[0], returnContext, newScopeWithParent(memTable));
+                        eval(b->children[0], returnContext, ownedGlobalVariables, newScopeWithParent(memTable));
                         return AnyValue{};
                     default:
                         log("Interpreter: Unexpected node in branch -> '" + AST_node_type_to_string(b->type) + "'");
@@ -390,7 +390,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
         case NODE_TYPE::LOOP_REPEAT: {
             // evaluate the number of times that we need to loop
-            AnyValue v = eval(root->children[0], returnContext, memTable);
+            AnyValue v = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             size_t times = (size_t)max(0.0, extractNumValue(v, root->children[0]));
 
             auto functionScope = newScopeWithParent(memTable);
@@ -415,7 +415,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             // evaluate body of statement in a for loop
             for(size_t i=0; i<times; i++) {
-                eval(root->children[childIndex], returnContext, functionScope);
+                eval(root->children[childIndex], returnContext, ownedGlobalVariables, functionScope);
 
                 // if a counter variable was declared, auto increment it here
                 if(counterVar != nullptr)
@@ -427,12 +427,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::LOOP_WHILE: {
-            AnyValue v = eval(root->children[0], returnContext, memTable);
+            AnyValue v = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             while(extractNumValue(v, root->children[0]) != 0) {
-                eval(root->children[1], returnContext, newScopeWithParent(memTable));
+                eval(root->children[1], returnContext, ownedGlobalVariables, newScopeWithParent(memTable));
 
                 if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None && returnContext->type != EVAL_RES_TYPE::RETURN) break;
-                v = eval(root->children[0], returnContext, memTable);
+                v = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             }
             break;
         }
@@ -461,7 +461,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             vector<AnyValue> args;
             if(root->children.size() > 1) {
                 for(auto &a : root->children[1]->children) {
-                    args.emplace_back(eval(a, returnContext, memTable));
+                    args.emplace_back(eval(a, returnContext, ownedGlobalVariables, memTable));
                 }
             }
 
@@ -525,7 +525,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             funcReturnCtx->type = EVAL_RES_TYPE::None;
 
             try {
-                eval(funPtr->children[funPtr->children.size()-1], funcReturnCtx, funMemTable);
+                eval(funPtr->children[funPtr->children.size()-1], funcReturnCtx, ownedGlobalVariables, funMemTable);
             } catch (ScribbleErr &e) {
                 throwScribbleError(root->children[0], "Error in called function", e.type, make_shared<ScribbleErr>(e));
             }
@@ -545,7 +545,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             vector<AnyValue> args;
             if(root->children.size() > 1) {
                 for(auto &a : root->children[1]->children) {
-                    args.emplace_back(eval(a, returnContext, memTable));
+                    args.emplace_back(eval(a, returnContext, ownedGlobalVariables, memTable));
                 }
             }
 
@@ -565,7 +565,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
         case NODE_TYPE::RETURN_STATEMENT:
             if(root->children.size() > 0)
-                *returnContext = eval(root->children[0], returnContext, memTable);
+                *returnContext = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             else
                 returnContext->type = EVAL_RES_TYPE::RETURN;
             break;
@@ -574,12 +574,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             bool res = false;
 
             // a bit weird here, but we do this to allow for short circuiting when the first value is true
-            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             if(extractNumValue(one, root->children[0])) {
                 res = true;
             }
             else {
-                AnyValue two = eval(root->children[1], returnContext, memTable);
+                AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
                 if(extractNumValue(two, root->children[1]))
                     res = true;
             }
@@ -591,9 +591,9 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             bool res = false;
 
             // a bit weird here, but we do this to allow for short circuiting when the first value is false
-            AnyValue one = eval(root->children[0], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             if(extractNumValue(one, root->children[0])) {
-                AnyValue two = eval(root->children[1], returnContext, memTable);
+                AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
                 if(extractNumValue(two, root->children[1]))
                     res = true;
             }
@@ -602,8 +602,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_OR: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
             checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
             SCRIBBLE_NUM_REP res = *(SCRIBBLE_NUM_REP*)one.value.get() | *(SCRIBBLE_NUM_REP*)two.value.get();
@@ -612,8 +612,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_XOR: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
             checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
             SCRIBBLE_NUM_REP res = *(SCRIBBLE_NUM_REP*)one.value.get() ^ *(SCRIBBLE_NUM_REP*)two.value.get();
@@ -622,8 +622,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_AND: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
             checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
             SCRIBBLE_NUM_REP res = *(SCRIBBLE_NUM_REP*)one.value.get() & *(SCRIBBLE_NUM_REP*)two.value.get();
@@ -632,8 +632,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_EQ: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             bool res;
 
             if(root->tok->type == TOK_TYPE::CMP_EQUALS) {
@@ -655,8 +655,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_CMP: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             bool res;
 
             switch(root->tok->type) {
@@ -687,8 +687,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_SHFT: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
             checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
             SCRIBBLE_NUM_REP res;
@@ -702,8 +702,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_ADD: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
 
             if(one.type == EVAL_RES_TYPE::String || two.type == EVAL_RES_TYPE::String) {
                 if(root->tok->type == TOK_TYPE::MINUS)
@@ -747,8 +747,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_MULT: {
-            AnyValue one = eval(root->children[0], returnContext, memTable);
-            AnyValue two = eval(root->children[1], returnContext, memTable);
+            AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             double res = 0;
 
             if(root->tok->lexeme == "*")
@@ -763,8 +763,8 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_POW: {
-            AnyValue baseVal = eval(root->children[0], returnContext, memTable);
-            AnyValue powVal = eval(root->children[1], returnContext, memTable);
+            AnyValue baseVal = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
+            AnyValue powVal = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             double res = pow(
                 extractNumValue(baseVal, root->children[0]),
                 extractNumValue(powVal, root->children[1])
@@ -775,7 +775,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         }
 
         case NODE_TYPE::EXP_NOT: {
-            AnyValue val = eval(root->children[0], returnContext, memTable);
+            AnyValue val = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             double extracted = extractNumValue(val, root->children[0]);
             return AnyValue{{1}, make_shared<bool>(!extracted), EVAL_RES_TYPE::Bool};
         }
@@ -988,10 +988,10 @@ void castAndAssign(AnyValue &val, double newVal, bool inPlace) {
     }
 }
 
-void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<SymbolTable> memTable) {
+void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<vector<size_t>> ownedGlobalVariables, shared_ptr<SymbolTable> memTable) {
     vector<int> index;
     for(auto &indexNode : idx->children) {
-        AnyValue dim = eval(indexNode, nullptr, memTable);
+        AnyValue dim = eval(indexNode, nullptr, ownedGlobalVariables, memTable);
         index.push_back(
             extractNumValue(dim, indexNode)
         );

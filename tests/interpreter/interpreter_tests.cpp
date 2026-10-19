@@ -55,6 +55,7 @@ void test_function(string funName, shared_ptr<AST_Node> program) {
                 Interpreter::eval(
                     function->children[1], // evaluate the body of the function
                     rtnCtx,
+                    nullptr,
                     make_shared<Interpreter::SymbolTable>());
                 
                 if(rtnCtx == nullptr)
