@@ -63,7 +63,7 @@ void test_function(string funName, shared_ptr<AST_Node> program) {
                 if(rtnCtx->type != Interpreter::EVAL_RES_TYPE::Num || *(SCRIBBLE_NUM_REP*)rtnCtx->value.get() != 0)
                     throw test_fail{"Interpreter test '" + funName + "'", "Bad return"};
             } catch (ScribbleErr &e) {
-                throw test_fail{"Interpreter test '" + funName + "'", "Interpreter failed with error: " + e.msg};
+                throw test_fail{"Interpreter test '" + funName + "'", "(Line " + to_string(e.line) + "): Interpreter failed with error: " + e.msg};
             }
 
             return;
