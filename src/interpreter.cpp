@@ -61,21 +61,29 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::PROGRAM: {
             InitRuntime();
 
-            for(auto& node : root.get()->children)
-                eval(node, nullptr, ownedGlobalVariables, memTable);
+            for(auto& node : root.get()->children) {
+                // temporary array to keep track of global variables owned by the global variable space
+                auto globalOwnedGlobals = make_shared<vector<size_t>>();
+
+                eval(node, nullptr, globalOwnedGlobals, memTable);
+
+                // clear locks on owned global variables
+                for(auto& owned : *globalOwnedGlobals)
+                    GlobalValues[owned].symbol_mutex->unlock();
+            }
             
             if(StartFunction==nullptr) throwScribbleError(root, ":START: function", ERR_TYPE::MISSING_REQUIRED);
             if(UpdateFunction==nullptr) throwScribbleError(root, ":UPDATE: function", ERR_TYPE::MISSING_REQUIRED);
 
             // Run start function
-            eval(StartFunction->children[0], make_shared<AnyValue>(), ownedGlobalVariables, newScopeWithParent(memTable));
+            eval(StartFunction->children[0], make_shared<AnyValue>(), nullptr, newScopeWithParent(memTable));
 
             // Run main loop
             // TODO: Include method of gracefully breaking out of this loop through the graphical window
             auto updateFunctionReturnCtx = make_shared<AnyValue>();
             updateFunctionReturnCtx->type = EVAL_RES_TYPE::None;
             while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None) {
-                eval(UpdateFunction->children[0], updateFunctionReturnCtx, ownedGlobalVariables, newScopeWithParent(memTable));
+                eval(UpdateFunction->children[0], updateFunctionReturnCtx, nullptr, newScopeWithParent(memTable));
                 BuiltIn::update(BuiltInVariables);
             }
             break;
@@ -260,7 +268,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
                 // start from the local scope and keep moving through memory until we've exhausted all scopes or we found the variable
                 while(memTablePtr != nullptr && foundValue == nullptr) {
-                    for(auto& var : memTablePtr->values) {
+                    for(auto &var : memTablePtr->values) {
                         if(var.first == ident) {
                             foundValue = make_shared<AnyValue>(var.second);
                             break;
@@ -271,8 +279,25 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                     memTablePtr = memTablePtr->parent;
                 }
 
-                if(foundValue == nullptr)
+                if(foundValue == nullptr && ownedGlobalVariables != nullptr) {
+                    // search global memory
+                    for(size_t i=0; i<GlobalValues.size(); i++) {
+                        if(GlobalValues[i].name == ident) {
+                            // check if we already own this global variable (prevent deadlock when locking)
+                            if(find(ownedGlobalVariables->begin(), ownedGlobalVariables->end(), i) == ownedGlobalVariables->end()) {
+                                // we do not own this already, time to lock it down
+                                GlobalValues[i].symbol_mutex->lock();
+                                ownedGlobalVariables->push_back(i);
+                            }
+
+                            // return value (at this point everything should be thread safe)
+                            return GlobalValues[i].value;
+                        }
+                    }
+                } 
+                else if(foundValue == nullptr) {
                     throwScribbleError(root->children[0], "Variable '" + ident + "' not found.", ERR_TYPE::INVALID_SYMBOL);
+                }
             }
 
             // TODO: figure out what could possibly cause this error to be triggered
@@ -289,8 +314,6 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
 
             if(foundValue != nullptr)
                 return *foundValue;
-
-            //TODO: search global memory
 
             break;
         }
@@ -360,7 +383,12 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 if(returnContext != nullptr && returnContext->type != EVAL_RES_TYPE::None) 
                     return *returnContext;
 
-                eval(node, returnContext, ownedGlobalVariables, memTable);
+                auto ownedVariables = make_shared<vector<size_t>>();
+                eval(node, returnContext, ownedVariables, memTable);
+
+                // clear locks on any global variables claimed by this line
+                for(auto &i : *ownedVariables)
+                    GlobalValues[i].symbol_mutex->unlock();
             }
             break;
 

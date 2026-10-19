@@ -1,21 +1,16 @@
+num global = 3
+float test = global + 2.2
 :START: {
-    num i
-    badFunc()
+    :print("Accessing global... "+global)
+    :print("Accessing other global... "+test)
+    :print("Doing it again... "+global)
+    global += 1
+    :print("Adding to it... "+global)
+    global = 3 + global
+    :print("Adding to it... "+global)
+    :print("Combining the two: " + (global+test))
 }
 
 :UPDATE: {
     return 0
-}
-
-fun badFunc() {
-    otherBadFunc()
-    :print("Done")
-}
-
-fun otherBadFunc() {
-    Object test
-
-    test.x.z = 1
-    test.y = test.x + 2
-    :print(""+test.y)
 }
