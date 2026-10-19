@@ -37,7 +37,8 @@ There are countless ways to develop video games and graphical applications. Howe
     - [X] (Basic) Object support
     - [X] Add new error types to err.cpp
     - [ ] File imports
-    - [ ] Safe global variable access
+    - [X] Safe global variable access
+    - [ ] Concurrent methods (async, auto_coroutine)
     - [X] Improve `repeat` loops to have built in counters (better for indexing)
     - [X] Short-circuit boolean expressions
     - [X] Nested error reporting for functions
