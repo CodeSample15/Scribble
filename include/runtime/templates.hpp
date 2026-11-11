@@ -2,8 +2,10 @@
 
 #include <string>
 #include <vector>
+#include <SFML/Graphics.hpp>
+
 #include "interpreter.hpp"
-#include "graphics/images.hpp"
+#include "graphics.hpp"
 
 namespace TemplateObjects {
     class VariableWithProperties {
@@ -23,11 +25,12 @@ namespace TemplateObjects {
         Interpreter::AnyValue GetValue(std::string name);
     private:
         SymbolTableValues variables;
-        //Image img;
+        Graphics::ImageShape shape;
+        std::shared_ptr<sf::Drawable> icon;
     };
 
     // User defined object (similar to "class" in C++)
-    class Sprite : VariableWithProperties {
+    class Prefab : VariableWithProperties {
         
     };
 }
