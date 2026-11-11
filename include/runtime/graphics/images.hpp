@@ -9,25 +9,27 @@
     This object provides an interface to render an Image to the screen.
 */
 
-enum ImageShape {
-    CIRCLE,
-    SQUARE,
-    TRIANGLE,
-    PENTAGON,
-    HEXAGON,
-    OCTAGON,
-    CUSTOM
-};
+namespace Graphics {
+    enum ImageShape {
+        CIRCLE,
+        SQUARE,
+        TRIANGLE,
+        PENTAGON,
+        HEXAGON,
+        OCTAGON,
+        CUSTOM
+    };
 
-struct ImageColor {
-    uint8_t r, g, b, a;
-};
+    struct ImageColor {
+        uint8_t r, g, b, a;
+    };
 
-class Image {
-public:
-    Image();
-    void render();
-private:
-    ImageColor color;
-    ImageShape shape;
+    class Image {
+    public:
+        Image();
+        void render();
+    private:
+        ImageColor color;
+        ImageShape shape;
+    };
 };
