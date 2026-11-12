@@ -12,5 +12,5 @@ float test = global + 2.2
 }
 
 :UPDATE: {
-    return 0
+    //return 0
 }

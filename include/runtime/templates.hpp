@@ -5,7 +5,6 @@
 #include <SFML/Graphics.hpp>
 
 #include "interpreter.hpp"
-#include "graphics.hpp"
 
 namespace TemplateObjects {
     class VariableWithProperties {
@@ -13,6 +12,16 @@ namespace TemplateObjects {
         virtual ~VariableWithProperties() = 0;
         virtual Interpreter::AnyValue CallFunction(std::string name, std::vector<Interpreter::AnyValue> args) = 0;
         virtual Interpreter::AnyValue GetValue(std::string name) = 0;
+    };
+
+    enum ObjectShape {
+        CIRCLE,
+        SQUARE,
+        TRIANGLE,
+        PENTAGON,
+        HEXAGON,
+        OCTAGON,
+        CUSTOM
     };
 
     // Language level datatype, represents physical items on the screen
@@ -25,8 +34,8 @@ namespace TemplateObjects {
         Interpreter::AnyValue GetValue(std::string name);
     private:
         SymbolTableValues variables;
-        Graphics::ImageShape shape;
-        std::shared_ptr<sf::Drawable> icon;
+        // Graphics::ImageShape shape;
+        // std::shared_ptr<sf::Drawable> icon;
     };
 
     // User defined object (similar to "class" in C++)

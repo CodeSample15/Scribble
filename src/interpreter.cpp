@@ -4,6 +4,7 @@
 #include "interpreter.hpp"
 #include "runtime/built_in.hpp"
 #include "runtime/templates.hpp"
+#include "runtime/graphics.hpp"
 #include "debug.hpp"
 
 using namespace Interpreter;
@@ -75,17 +76,27 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             if(StartFunction==nullptr) throwScribbleError(root, ":START: function", ERR_TYPE::MISSING_REQUIRED);
             if(UpdateFunction==nullptr) throwScribbleError(root, ":UPDATE: function", ERR_TYPE::MISSING_REQUIRED);
 
+            // Init graphical window (SFML)
+            Graphics::init();
+
             // Run start function
             eval(StartFunction->children[0], make_shared<AnyValue>(), nullptr, newScopeWithParent(memTable));
 
             // Run main loop
-            // TODO: Include method of gracefully breaking out of this loop through the graphical window
             auto updateFunctionReturnCtx = make_shared<AnyValue>();
             updateFunctionReturnCtx->type = EVAL_RES_TYPE::None;
-            while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None) {
+            while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None && Graphics::windowOpen()) {
+                Graphics::clearScreen();
+
                 eval(UpdateFunction->children[0], updateFunctionReturnCtx, nullptr, newScopeWithParent(memTable));
+
+                Graphics::pollWindow();
                 BuiltIn::update(BuiltInVariables);
+                Graphics::renderScreen();
             }
+
+            if(Graphics::windowOpen()) 
+                Graphics::close();
             break;
         }
 

@@ -4,19 +4,11 @@
 #include "templates.hpp"
 
 namespace Graphics {
-    enum ImageShape {
-        CIRCLE,
-        SQUARE,
-        TRIANGLE,
-        PENTAGON,
-        HEXAGON,
-        OCTAGON,
-        CUSTOM
-    };
-
-    void init(uint16_t width, uint16_t height);
+    void init(uint16_t width=800, uint16_t height=600);
     void drawObj(TemplateObjects::Object &obj);
     void renderScreen();
+    void clearScreen();
+    void pollWindow();
 
     bool windowOpen();
     void close();
