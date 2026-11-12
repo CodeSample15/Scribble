@@ -11,8 +11,10 @@ void Graphics::init(uint16_t width, uint16_t height) {
     windowPtr = std::make_shared<sf::RenderWindow>(sf::VideoMode({width, height}), "Scribble Project");
 }
 
-void Graphics::drawObj(TemplateObjects::Object &obj) {
+void Graphics::drawObj(TemplateObjects::Object* obj) {
     if(windowPtr == nullptr) return;
+    if(obj == nullptr || obj->icon == nullptr) return;
+    windowPtr->draw(*obj->icon);
 }
 
 void Graphics::renderScreen() {

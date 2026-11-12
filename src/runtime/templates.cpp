@@ -1,4 +1,5 @@
 #include "runtime/templates.hpp"
+#include "runtime/graphics.hpp"
 #include "debug.hpp"
 
 using namespace std;
@@ -22,13 +23,13 @@ TemplateObjects::Object::Object() {
 
     variables.push_back({"width", AnyValue{
         {1},
-        make_shared<SCRIBBLE_FLOAT_REP>(5),
+        make_shared<SCRIBBLE_FLOAT_REP>(OBJECT_DEFAULT_WIDTH),
         EVAL_RES_TYPE::Float
     }});
 
     variables.push_back({"height", AnyValue{
         {1},
-        make_shared<SCRIBBLE_FLOAT_REP>(5),
+        make_shared<SCRIBBLE_FLOAT_REP>(OBJECT_DEFAULT_HEIGHT),
         EVAL_RES_TYPE::Float
     }});
 
@@ -37,6 +38,10 @@ TemplateObjects::Object::Object() {
         make_shared<bool>(true),
         EVAL_RES_TYPE::Bool
     }});
+
+    auto defaultIcon = make_shared<sf::RectangleShape>();
+    defaultIcon->setSize({OBJECT_DEFAULT_WIDTH, OBJECT_DEFAULT_HEIGHT});
+    this->icon = defaultIcon;
 }
 
 TemplateObjects::Object::Object(Object* other) : Object() {
@@ -60,7 +65,9 @@ TemplateObjects::Object::Object(Object* other) : Object() {
 }
 
 AnyValue TemplateObjects::Object::CallFunction(string name, vector<Interpreter::AnyValue> args) {
-    log("FUNCTION CALLED: " + name);
+    if(name == "draw") {
+        Graphics::drawObj(this);
+    }
     return AnyValue{};
 }
 

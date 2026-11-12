@@ -6,6 +6,9 @@
 
 #include "interpreter.hpp"
 
+#define OBJECT_DEFAULT_WIDTH 50
+#define OBJECT_DEFAULT_HEIGHT 50
+
 namespace TemplateObjects {
     class VariableWithProperties {
     public:
@@ -32,9 +35,11 @@ namespace TemplateObjects {
 
         Interpreter::AnyValue CallFunction(std::string name, std::vector<Interpreter::AnyValue> args);
         Interpreter::AnyValue GetValue(std::string name);
+
+        std::shared_ptr<sf::Drawable> icon;
     private:
         SymbolTableValues variables;
-        // Graphics::ImageShape shape;
+        //ObjectShape shape;
         // std::shared_ptr<sf::Drawable> icon;
     };
 

@@ -1,16 +1,9 @@
-num global = 3
-float test = global + 2.2
+Object player
+
 :START: {
-    :print("Accessing global... "+global)
-    :print("Accessing other global... "+test)
-    :print("Doing it again... "+global)
-    global += 1
-    :print("Adding to it... "+global)
-    global = 3 + global
-    :print("Adding to it... "+global)
-    :print("Combining the two: " + (global+test))
+
 }
 
 :UPDATE: {
-    //return 0
+    player.draw()
 }
