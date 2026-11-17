@@ -17,16 +17,6 @@ namespace TemplateObjects {
         virtual Interpreter::AnyValue GetValue(std::string name) = 0;
     };
 
-    enum ObjectShape {
-        CIRCLE,
-        SQUARE,
-        TRIANGLE,
-        PENTAGON,
-        HEXAGON,
-        OCTAGON,
-        CUSTOM
-    };
-
     // Language level datatype, represents physical items on the screen
     class Object : public VariableWithProperties {
     public:
@@ -36,11 +26,12 @@ namespace TemplateObjects {
         Interpreter::AnyValue CallFunction(std::string name, std::vector<Interpreter::AnyValue> args);
         Interpreter::AnyValue GetValue(std::string name);
 
+        void setColor(int r, int g, int b, int a=255);
+
         std::shared_ptr<sf::Drawable> icon;
     private:
         SymbolTableValues variables;
-        //ObjectShape shape;
-        // std::shared_ptr<sf::Drawable> icon;
+        bool isShape; // whether this is an image or a shape (determines how icon should be casted when editing the icon's properties)
     };
 
     // User defined object (similar to "class" in C++)

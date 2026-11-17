@@ -39,6 +39,30 @@ TemplateObjects::Object::Object() {
         EVAL_RES_TYPE::Bool
     }});
 
+    variables.push_back({"color_r", AnyValue{
+        {1},
+        make_shared<SCRIBBLE_NUM_REP>(0),
+        EVAL_RES_TYPE::Num
+    }});
+
+    variables.push_back({"color_g", AnyValue{
+        {1},
+        make_shared<SCRIBBLE_NUM_REP>(0),
+        EVAL_RES_TYPE::Num
+    }});
+
+    variables.push_back({"color_b", AnyValue{
+        {1},
+        make_shared<SCRIBBLE_NUM_REP>(0),
+        EVAL_RES_TYPE::Num
+    }});
+
+    variables.push_back({"color_a", AnyValue{
+        {1},
+        make_shared<SCRIBBLE_NUM_REP>(0),
+        EVAL_RES_TYPE::Num
+    }});
+
     auto defaultIcon = make_shared<sf::RectangleShape>();
     defaultIcon->setSize({OBJECT_DEFAULT_WIDTH, OBJECT_DEFAULT_HEIGHT});
     this->icon = defaultIcon;
@@ -67,7 +91,10 @@ TemplateObjects::Object::Object(Object* other) : Object() {
 AnyValue TemplateObjects::Object::CallFunction(string name, vector<Interpreter::AnyValue> args) {
     if(name == "draw") {
         Graphics::drawObj(this);
+    } else if(name == "setColor") {
+        
     }
+
     return AnyValue{};
 }
 
@@ -79,4 +106,16 @@ AnyValue TemplateObjects::Object::GetValue(string name) {
 
     throw ScribbleErr{0, 0, "Object does not have member '" + name + "'", ERR_TYPE::INVALID_SYMBOL};
     return AnyValue{};
+}
+
+void TemplateObjects::Object::setColor(int r, int g, int b, int a) {
+    r = min(max(r, 0), 255);
+    g = min(max(g, 0), 255);
+    b = min(max(b, 0), 255);
+    a = min(max(a, 0), 255);
+
+    *(SCRIBBLE_NUM_REP*)GetValue("color_r").value.get() = r;
+    *(SCRIBBLE_NUM_REP*)GetValue("color_g").value.get() = g;
+    *(SCRIBBLE_NUM_REP*)GetValue("color_b").value.get() = b;
+    *(SCRIBBLE_NUM_REP*)GetValue("color_a").value.get() = a;
 }
