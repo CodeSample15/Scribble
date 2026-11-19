@@ -26,6 +26,7 @@ namespace TemplateObjects {
         Interpreter::AnyValue CallFunction(std::string name, std::vector<Interpreter::AnyValue> args);
         Interpreter::AnyValue GetValue(std::string name);
 
+        void updateIcon(); // push color + size + location changes from object variables to SFML object
         void setColor(int r, int g, int b, int a=255);
 
         std::shared_ptr<sf::Drawable> icon;

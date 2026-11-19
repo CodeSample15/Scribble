@@ -33,6 +33,12 @@ TemplateObjects::Object::Object() {
         EVAL_RES_TYPE::Float
     }});
 
+    variables.push_back({"rotation", AnyValue{
+        {1},
+        make_shared<SCRIBBLE_FLOAT_REP>(0),
+        EVAL_RES_TYPE::Float
+    }});
+
     variables.push_back({"visible", AnyValue{
         {1},
         make_shared<bool>(true),
@@ -41,31 +47,32 @@ TemplateObjects::Object::Object() {
 
     variables.push_back({"color_r", AnyValue{
         {1},
-        make_shared<SCRIBBLE_NUM_REP>(0),
+        make_shared<SCRIBBLE_NUM_REP>(255),
         EVAL_RES_TYPE::Num
     }});
 
     variables.push_back({"color_g", AnyValue{
         {1},
-        make_shared<SCRIBBLE_NUM_REP>(0),
+        make_shared<SCRIBBLE_NUM_REP>(255),
         EVAL_RES_TYPE::Num
     }});
 
     variables.push_back({"color_b", AnyValue{
         {1},
-        make_shared<SCRIBBLE_NUM_REP>(0),
+        make_shared<SCRIBBLE_NUM_REP>(255),
         EVAL_RES_TYPE::Num
     }});
 
     variables.push_back({"color_a", AnyValue{
         {1},
-        make_shared<SCRIBBLE_NUM_REP>(0),
+        make_shared<SCRIBBLE_NUM_REP>(255),
         EVAL_RES_TYPE::Num
     }});
 
     auto defaultIcon = make_shared<sf::RectangleShape>();
     defaultIcon->setSize({OBJECT_DEFAULT_WIDTH, OBJECT_DEFAULT_HEIGHT});
     this->icon = defaultIcon;
+    isShape = true;
 }
 
 TemplateObjects::Object::Object(Object* other) : Object() {
@@ -118,4 +125,30 @@ void TemplateObjects::Object::setColor(int r, int g, int b, int a) {
     *(SCRIBBLE_NUM_REP*)GetValue("color_g").value.get() = g;
     *(SCRIBBLE_NUM_REP*)GetValue("color_b").value.get() = b;
     *(SCRIBBLE_NUM_REP*)GetValue("color_a").value.get() = a;
+}
+
+void TemplateObjects::Object::updateIcon() {
+    float x = *(SCRIBBLE_FLOAT_REP*)GetValue("x").value.get();
+    float y = *(SCRIBBLE_FLOAT_REP*)GetValue("y").value.get();
+    float width = *(SCRIBBLE_FLOAT_REP*)GetValue("width").value.get();
+    float height = *(SCRIBBLE_FLOAT_REP*)GetValue("height").value.get();
+    float rot = *(SCRIBBLE_FLOAT_REP*)GetValue("rotation").value.get();
+    int r = *(SCRIBBLE_NUM_REP*)GetValue("color_r").value.get();
+    int g = *(SCRIBBLE_NUM_REP*)GetValue("color_g").value.get();
+    int b = *(SCRIBBLE_NUM_REP*)GetValue("color_b").value.get();
+    int a = *(SCRIBBLE_NUM_REP*)GetValue("color_a").value.get();
+
+    if(isShape) {
+        auto iconShape = dynamic_cast<sf::Shape*>(icon.get());
+        iconShape->setPosition({x, y});
+        iconShape->setScale({width, height});
+        iconShape->setFillColor(sf::Color(r, g, b, a));
+        iconShape->setRotation(sf::degrees(rot));
+    } else {
+        auto iconSprite = dynamic_cast<sf::Sprite*>(icon.get());
+        iconSprite->setPosition({x, y});
+        iconSprite->setScale({width, height});
+        iconSprite->setColor(sf::Color(r, g, b, a));
+        iconSprite->setRotation(sf::degrees(rot));
+    }
 }

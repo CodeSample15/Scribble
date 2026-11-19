@@ -1,9 +1,16 @@
 Object player
 
 :START: {
-
+    player.width = 0.3
+    player.height = 0.3
 }
 
 :UPDATE: {
+    player.x += 0.1
+    if player.x > 100 {
+        player.x = 0
+        player.y += 1
+    }
+
     player.draw()
 }

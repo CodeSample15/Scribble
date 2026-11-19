@@ -14,6 +14,7 @@ void Graphics::init(uint16_t width, uint16_t height) {
 void Graphics::drawObj(TemplateObjects::Object* obj) {
     if(windowPtr == nullptr) return;
     if(obj == nullptr || obj->icon == nullptr) return;
+    obj->updateIcon();
     windowPtr->draw(*obj->icon);
 }
 
