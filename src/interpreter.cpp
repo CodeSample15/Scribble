@@ -408,7 +408,14 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 switch(b->type) {
                     case NODE_TYPE::BRANCH_IF:
                     case NODE_TYPE::BRANCH_ELSE_IF: {
-                        AnyValue e = eval(b->children[0], returnContext, ownedGlobalVariables, memTable);
+                        // make a new owned variables array since this evaluation is considered a "separate" line
+                        auto ownedVariables = make_shared<vector<size_t>>();
+                        AnyValue e = eval(b->children[0], returnContext, ownedVariables, memTable);
+
+                        // unlock since we no longer own the variables
+                        for(auto &i : *ownedVariables)
+                            GlobalValues[i].symbol_mutex->unlock();
+
                         double t = extractNumValue(e, b->children[0]);
                         if(t != 0) {
                             eval(b->children[1], returnContext, ownedGlobalVariables, newScopeWithParent(memTable));
