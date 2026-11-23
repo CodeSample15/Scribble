@@ -4,6 +4,7 @@
 #include "err.hpp"
 
 namespace Utils {
+    // Interpreter helper functions:
     void checkForAllowedDtype(Interpreter::AnyValue val, std::vector<Interpreter::EVAL_RES_TYPE> dtypes, std::shared_ptr<AST_Node> &node);
     bool isPrimitive(Interpreter::EVAL_RES_TYPE t); // returns true if the passed type is a primitive type
     void checkSingleVal(Interpreter::AnyValue val, std::shared_ptr<AST_Node> &node);
