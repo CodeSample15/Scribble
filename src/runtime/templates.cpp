@@ -98,10 +98,14 @@ TemplateObjects::Object::Object(Object* other) : Object() {
 AnyValue TemplateObjects::Object::CallFunction(string name, vector<Interpreter::AnyValue> args) {
     if(name == "draw") {
         Graphics::drawObj(this);
+        return AnyValue{{}, nullptr, EVAL_RES_TYPE::None};
     } else if(name == "setColor") {
-        
+        if(args.size() < 3) throw ScribbleErr{0, 0, "setColor expected at least 3 args: (r, g, b, a=255)", ERR_TYPE::INVALID_FUN_CALL};
+
+        return AnyValue{{}, nullptr, EVAL_RES_TYPE::None};   
     }
 
+    throw ScribbleErr{0, 0, "Function name not found for Object: '" + name + "'", ERR_TYPE::INVALID_FUN_CALL};
     return AnyValue{};
 }
 
@@ -139,9 +143,9 @@ void TemplateObjects::Object::updateIcon() {
     int a = *(SCRIBBLE_NUM_REP*)GetValue("color_a").value.get();
 
     if(isShape) {
-        auto iconShape = dynamic_cast<sf::Shape*>(icon.get());
+        auto iconShape = dynamic_cast<sf::RectangleShape*>(icon.get());
         iconShape->setPosition({x, y});
-        iconShape->setScale({width, height});
+        iconShape->setSize({width, height});
         iconShape->setFillColor(sf::Color(r, g, b, a));
         iconShape->setRotation(sf::degrees(rot));
     } else {

@@ -1,8 +1,9 @@
 #include <memory>
 
+#include "runtime/built_in.hpp"
+#include "runtime/graphics.hpp"
 #include "err.hpp"
 #include "debug.hpp"
-#include "runtime/built_in.hpp"
 
 using namespace std;
 using namespace Interpreter;
@@ -21,6 +22,8 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
     memory.clear();
     memory.emplace_back("JOY_X", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
     memory.emplace_back("JOY_Y", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
+    memory.emplace_back("SCREEN_WIDTH", AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(0), EVAL_RES_TYPE::Num});
+    memory.emplace_back("SCREEN_HEIGHT", AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(0), EVAL_RES_TYPE::Num});
 
     funcs.clear();
     funcs.insert({PRINT_FUNC_NAME, BI_fun_print});
@@ -29,7 +32,17 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
 }
 
 void BuiltIn::update(SymbolTableValues &memory) {
+    for(auto &p : memory) {
+        if (p.first == "JOY_X") {
 
+        } else if (p.first == "JOY_Y") {
+
+        } else if (p.first == "SCREEN_WIDTH") {
+            *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenWidth;
+        } else if (p.first == "SCREEN_HEIGHT") {
+            *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenHeight;
+        }
+    }
 }
 
 // define built in functions
