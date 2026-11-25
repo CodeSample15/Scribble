@@ -668,7 +668,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_EQ: {
             AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
-            bool res;
+            bool res = false;
 
             if(root->tok->type == TOK_TYPE::CMP_EQUALS) {
                 if(one.type == EVAL_RES_TYPE::String && two.type == EVAL_RES_TYPE::String)
@@ -691,7 +691,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_CMP: {
             AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
-            bool res;
+            bool res = false;
 
             switch(root->tok->type) {
                 case TOK_TYPE::GREATER_THAN:
@@ -725,7 +725,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
             checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
-            SCRIBBLE_NUM_REP res;
+            SCRIBBLE_NUM_REP res = 0;
 
             if(root->tok->type == TOK_TYPE::SHIFT_LEFT)
                 res = *(SCRIBBLE_NUM_REP*)one.value.get() << *(SCRIBBLE_NUM_REP*)two.value.get();
