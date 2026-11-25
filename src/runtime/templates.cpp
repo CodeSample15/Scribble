@@ -120,10 +120,10 @@ AnyValue TemplateObjects::Object::GetValue(string name) {
 }
 
 void TemplateObjects::Object::setColor(int r, int g, int b, int a) {
-    r = min(max(r, 0), 255);
-    g = min(max(g, 0), 255);
-    b = min(max(b, 0), 255);
-    a = min(max(a, 0), 255);
+    r = clamp(r, 0, 255);
+    g = clamp(g, 0, 255);
+    b = clamp(b, 0, 255);
+    a = clamp(a, 0, 255);
 
     *(SCRIBBLE_NUM_REP*)GetValue("color_r").value.get() = r;
     *(SCRIBBLE_NUM_REP*)GetValue("color_g").value.get() = g;
