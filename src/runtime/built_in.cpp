@@ -34,9 +34,10 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
 void BuiltIn::update(SymbolTableValues &memory) {
     for(auto &p : memory) {
         if (p.first == "JOY_X") {
-
+            // TODO: use SFML Joystick to make Scribble work with joysticks
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Right) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Left) ? -1 : 0);
         } else if (p.first == "JOY_Y") {
-
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Up) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Down) ? -1 : 0);
         } else if (p.first == "SCREEN_WIDTH") {
             *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenWidth;
         } else if (p.first == "SCREEN_HEIGHT") {

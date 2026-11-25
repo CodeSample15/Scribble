@@ -13,5 +13,8 @@ Object player
         player.y += 1
     }
 
+    :print("X: "+$JOY_X)
+    :print("Y: "+$JOY_Y)
+
     player.draw()
 }
