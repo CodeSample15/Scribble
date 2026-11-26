@@ -1,4 +1,7 @@
+#ifdef _WIN32
 #include <windows.h>
+#endif
+
 #include <iostream>
 #include <cstring>
 
@@ -12,7 +15,9 @@ using namespace std;
 
 int main(int argc, char** argv) {
     // Allow special characters to be printed
+    #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
+    #endif
 
     vector<test_t> tests;
     if(argc != 1) {
