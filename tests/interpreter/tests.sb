@@ -1,4 +1,4 @@
-fun test_equations() {
+func test_equations() {
     if 3+2 != 5 {
         :print("1")
         return 1
@@ -72,12 +72,12 @@ fun test_equations() {
     return 0
 }
 
-fun test_built_in_functions() {
+func test_built_in_functions() {
     :print("")
     return 0
 }
 
-fun test_branching() {
+func test_branching() {
     if false {
         return 1
     } else if false {
@@ -99,14 +99,14 @@ fun test_branching() {
     }
 }
 
-fun test_comments() {
+func test_comments() {
     // Nothing exciting happens here, that's the point.
     // Make sure that comments literally do nothing.
     // Watermelon
     return 0
 }
 
-fun test_loops() {
+func test_loops() {
     num i=0
     repeat 100 {
         i += 1
@@ -129,7 +129,7 @@ fun test_loops() {
     return 0
 }
 
-fun test_variables() {
+func test_variables() {
     num a, b, c, d = 5
 
     if !(a == 5 && 
@@ -164,7 +164,7 @@ fun test_variables() {
     return 0
 }
 
-fun test_string_concat() {
+func test_string_concat() {
     string test = "hi"
 
     test = test + 4
@@ -185,7 +185,7 @@ fun test_string_concat() {
     return 0
 }
 
-fun test_string_assign() {
+func test_string_assign() {
     string test
 
     test = "hi"
@@ -211,7 +211,7 @@ fun test_string_assign() {
     return 0
 }
 
-fun test_string_compare() {
+func test_string_compare() {
     string one, two
 
     if one != two {
@@ -239,7 +239,7 @@ fun test_string_compare() {
     return 0
 }
 
-fun test_bitwise() {
+func test_bitwise() {
     num test = 1
 
     if !(test & 1) {
@@ -290,7 +290,7 @@ fun test_bitwise() {
     return 0
 }
 
-fun test_arrays() {
+func test_arrays() {
     num[5] test
 
     test[0] = 1
@@ -324,7 +324,7 @@ fun test_arrays() {
     return 0
 }
 
-fun test_matrices() {
+func test_matrices() {
     float[5, 5] mat
 
     if :shape(mat)[0] != 5 || :shape(mat)[1] != 5 {
@@ -364,7 +364,7 @@ fun test_matrices() {
     return 0
 }
 
-fun test_repeat_counters() {
+func test_repeat_counters() {
     float[10, 10] mat
 
     repeat :len(mat)# i {
@@ -384,7 +384,7 @@ fun test_repeat_counters() {
     return 0
 }
 
-fun test_short_circuit() {
+func test_short_circuit() {
     // ideally the print statements won't run because the interpreter will short circuit and not evaluate them
     // if they do evaluate, they will create an error since they don't return anything
 
@@ -399,7 +399,7 @@ fun test_short_circuit() {
     return 0
 }
 
-fun test_objects() {
+func test_objects() {
     GameObject test
 
     // test default values

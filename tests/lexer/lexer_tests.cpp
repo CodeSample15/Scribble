@@ -80,7 +80,7 @@ void load_lexer_tests(vector<test_t> &tests) {
     tests.emplace_back("LEX: keyword: repeat", [&]{ test_type_lex("repeat", TOK_TYPE::REPEAT, "repeat"); });
     tests.emplace_back("LEX: keyword: true", [&]{ test_type_lex("true", TOK_TYPE::TRUE, "true"); });
     tests.emplace_back("LEX: keyword: false", [&]{ test_type_lex("false", TOK_TYPE::FALSE, "false"); });
-    tests.emplace_back("LEX: keyword: fun", [&]{ test_type_lex("fun", TOK_TYPE::FUNCTION_DEFINE, "fun"); });
+    tests.emplace_back("LEX: keyword: func", [&]{ test_type_lex("func", TOK_TYPE::FUNCTION_DEFINE, "func"); });
     tests.emplace_back("LEX: keyword: num", [&]{ test_type_lex("num", TOK_TYPE::NUMBER_TYPE, "num"); });
     tests.emplace_back("LEX: keyword: float", [&]{ test_type_lex("float", TOK_TYPE::FLOAT_TYPE, "float"); });
     tests.emplace_back("LEX: keyword: bool", [&]{ test_type_lex("bool", TOK_TYPE::BOOL_TYPE, "bool"); });

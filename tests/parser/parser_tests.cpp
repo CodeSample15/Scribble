@@ -70,10 +70,10 @@ void load_parser_tests(vector<test_t> &tests) {
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
-    tests.emplace_back("PARSE: Function def 1", [&]{ test_return_type("fun test() {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
-    tests.emplace_back("PARSE: Function def 2", [&]{ test_return_type("fun test(int one, int two) {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
-    tests.emplace_back("PARSE: Function def 3", [&]{ test_return_type("[quiet] fun test(float one, int two) {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
-    tests.emplace_back("PARSE: Function def 4", [&]{ test_return_type("[quiet] fun test() {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 1", [&]{ test_return_type("func test() {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 2", [&]{ test_return_type("func test(int one, int two) {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 3", [&]{ test_return_type("[quiet] func test(float one, int two) {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
+    tests.emplace_back("PARSE: Function def 4", [&]{ test_return_type("[quiet] func test() {}", parse_function_def, NODE_TYPE::FUNCTION_DEF); });
 
     tests.emplace_back(TEST_NAME_FOR_SPACE, []{});
 
