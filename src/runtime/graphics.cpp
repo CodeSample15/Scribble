@@ -1,0 +1,57 @@
+#include "runtime/graphics.hpp"
+
+using namespace Graphics;
+
+uint16_t Graphics::ScreenWidth, Graphics::ScreenHeight;
+
+static std::shared_ptr<sf::RenderWindow> windowPtr = nullptr;
+
+void Graphics::init(uint16_t width, uint16_t height) {
+    if(windowPtr != nullptr) windowPtr = nullptr; // deallocate old window if there was one
+
+    windowPtr = std::make_shared<sf::RenderWindow>(sf::VideoMode({width, height}), "Scribble Project");
+    ScreenWidth = width;
+    ScreenHeight = height;
+}
+
+void Graphics::drawObj(TemplateObjects::GameObject* obj) {
+    if(windowPtr == nullptr) return;
+    if(obj == nullptr || obj->icon == nullptr) return;
+    obj->updateIcon();
+    windowPtr->draw(*obj->icon);
+}
+
+void Graphics::renderScreen() {
+    if(windowPtr == nullptr) return;
+    windowPtr->display();
+}
+
+void Graphics::clearScreen() {
+    if(windowPtr == nullptr) return;
+    windowPtr->clear();
+}
+
+void Graphics::pollWindow() {
+    if(windowPtr == nullptr) return;
+
+    const std::optional event = windowPtr->pollEvent();
+    if (event) {
+        if(event->is<sf::Event::Closed>())
+            windowPtr->close();
+    }
+}
+
+bool Graphics::windowOpen() {
+    if(windowPtr == nullptr) return false;
+    return windowPtr->isOpen();
+}
+
+void Graphics::close() {
+    if(windowPtr == nullptr) return;
+    windowPtr->close();
+}
+
+sf::Vector2i Graphics::getMouseWindowLoc() {
+    if(windowPtr == nullptr) return sf::Vector2i({0, 0});
+    return sf::Mouse::getPosition(*windowPtr);
+}

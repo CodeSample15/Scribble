@@ -1,8 +1,10 @@
 #include <memory>
+#include <chrono>
 
+#include "runtime/built_in.hpp"
+#include "runtime/graphics.hpp"
 #include "err.hpp"
 #include "debug.hpp"
-#include "runtime/built_in.hpp"
 
 using namespace std;
 using namespace Interpreter;
@@ -14,6 +16,9 @@ AnyValue BI_fun_len(vector<AnyValue>);
 
 AnyValue noValue();
 
+static chrono::steady_clock::time_point LastFrameTime;
+static bool RanFirstFrame = false;
+
 // helper prototypes
 void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyValue> &args);
 
@@ -22,6 +27,18 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
     memory.emplace_back("JOY_X", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
     memory.emplace_back("JOY_Y", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
 
+    memory.emplace_back("BTN_A", AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool});
+    memory.emplace_back("BTN_B", AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool});
+    memory.emplace_back("BTN_C", AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool});
+    memory.emplace_back("BTN_ESC", AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool});
+
+    memory.emplace_back("MOUSE_X", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
+    memory.emplace_back("MOUSE_Y", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
+
+    memory.emplace_back("SCREEN_WIDTH", AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(0), EVAL_RES_TYPE::Num});
+    memory.emplace_back("SCREEN_HEIGHT", AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(0), EVAL_RES_TYPE::Num});
+    memory.emplace_back("DTIME", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
+
     funcs.clear();
     funcs.insert({PRINT_FUNC_NAME, BI_fun_print});
     funcs.insert({SHAPE_FUNC_NAME, BI_fun_shape});
@@ -29,7 +46,49 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
 }
 
 void BuiltIn::update(SymbolTableValues &memory) {
+    sf::Vector2i mouseLocalPosition = Graphics::getMouseWindowLoc();
 
+    for(auto &p : memory) {
+        if (p.first == "JOY_X") {
+            // TODO: use SFML Joystick to make Scribble work with joysticks
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Right) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Left) ? -1 : 0);
+        } 
+        else if (p.first == "JOY_Y") {
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Up) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Down) ? -1 : 0);
+        } 
+        else if (p.first == "BTN_A") {
+            *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Z);
+        } 
+        else if (p.first == "BTN_B") {
+            *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::X);
+        } 
+        else if (p.first == "BTN_C") {
+            *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::C);
+        } 
+        else if (p.first == "BTN_ESC") {
+            *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Escape);
+        } 
+        else if (p.first == "MOUSE_X") {
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = mouseLocalPosition.x;
+        } 
+        else if (p.first == "MOUSE_Y") {
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = mouseLocalPosition.y;
+        } 
+        else if (p.first == "SCREEN_WIDTH") {
+            *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenWidth;
+        } 
+        else if (p.first == "SCREEN_HEIGHT") {
+            *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenHeight;
+        } 
+        else if (p.first == "DTIME") {
+            auto now = chrono::steady_clock::now();
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = RanFirstFrame ? 
+                                                        (float)chrono::duration_cast<chrono::nanoseconds>(now - LastFrameTime).count() / 10000000
+                                                        : 0;
+            LastFrameTime = now;
+            RanFirstFrame = true;
+        }
+    }
 }
 
 // define built in functions
@@ -100,6 +159,8 @@ void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyVal
 
 AnyValue noValue() {
     AnyValue t;
+    t.dimension = {};
+    t.value = nullptr;
     t.type = EVAL_RES_TYPE::None;
     return t;
 }

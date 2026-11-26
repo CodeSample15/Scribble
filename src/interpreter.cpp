@@ -4,9 +4,12 @@
 #include "interpreter.hpp"
 #include "runtime/built_in.hpp"
 #include "runtime/templates.hpp"
+#include "runtime/graphics.hpp"
+#include "utils/helpers.hpp"
 #include "debug.hpp"
 
 using namespace Interpreter;
+using namespace Utils;
 using namespace std;
 
 vector<SharedSymbol> Interpreter::GlobalValues;
@@ -22,20 +25,6 @@ unordered_map<string, EVAL_RES_TYPE> Interpreter::ValidDTypes;
 shared_ptr<SymbolTable> newScopeWithParent(shared_ptr<SymbolTable> parent);
 EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node);
 
-void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr<AST_Node> &node);
-bool isPrimitive(EVAL_RES_TYPE t); // returns true if the passed type is a primitive type
-void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node);
-shared_ptr<void> defaultValueFor(EVAL_RES_TYPE);
-shared_ptr<void> duplicateValue(EVAL_RES_TYPE, shared_ptr<void>);
-shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype);
-AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index);
-pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2);
-double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node);
-void castAndAssign(AnyValue &val, double newVal, bool inPlace=false);
-void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<vector<size_t>> ownedGlobalVariables, shared_ptr<SymbolTable> memTable);
-
-void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type, shared_ptr<ScribbleErr> parent=nullptr);
-
 void Interpreter::InitRuntime() {
     StartFunction = nullptr;
     UpdateFunction = nullptr;
@@ -47,7 +36,7 @@ void Interpreter::InitRuntime() {
         {"num", EVAL_RES_TYPE::Num},
         {"float", EVAL_RES_TYPE::Float},
         {"string", EVAL_RES_TYPE::String},
-        {"Object", EVAL_RES_TYPE::Object},
+        {"GameObject", EVAL_RES_TYPE::GameObject},
     };
 
     BuiltIn::init(BuiltInVariables, BuiltInFunctions);
@@ -75,17 +64,27 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             if(StartFunction==nullptr) throwScribbleError(root, ":START: function", ERR_TYPE::MISSING_REQUIRED);
             if(UpdateFunction==nullptr) throwScribbleError(root, ":UPDATE: function", ERR_TYPE::MISSING_REQUIRED);
 
+            // Init graphical window (SFML)
+            Graphics::init();
+
             // Run start function
             eval(StartFunction->children[0], make_shared<AnyValue>(), nullptr, newScopeWithParent(memTable));
 
             // Run main loop
-            // TODO: Include method of gracefully breaking out of this loop through the graphical window
             auto updateFunctionReturnCtx = make_shared<AnyValue>();
             updateFunctionReturnCtx->type = EVAL_RES_TYPE::None;
-            while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None) {
+            while (updateFunctionReturnCtx->type == EVAL_RES_TYPE::None && Graphics::windowOpen()) {
+                Graphics::clearScreen();
+
                 eval(UpdateFunction->children[0], updateFunctionReturnCtx, nullptr, newScopeWithParent(memTable));
+
+                Graphics::pollWindow();
                 BuiltIn::update(BuiltInVariables);
+                Graphics::renderScreen();
             }
+
+            if(Graphics::windowOpen()) 
+                Graphics::close();
             break;
         }
 
@@ -325,7 +324,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             for(size_t i=1; i < root->children.size(); i++) {
                 // in order for the next node in the chain to access something in tmp, tmp must be something that can be accessed via `.`
                 try {
-                    checkForAllowedDtype(tmp, {EVAL_RES_TYPE::Object}, root->children[i]);
+                    checkForAllowedDtype(tmp, {EVAL_RES_TYPE::GameObject}, root->children[i]);
                 } catch(ScribbleErr &e) {
                     // catch error and throw new one with better error message and type
                     throwScribbleError(root->children[i-1], "Value has no fields to access", ERR_TYPE::BAD_TYPE);
@@ -397,7 +396,14 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
                 switch(b->type) {
                     case NODE_TYPE::BRANCH_IF:
                     case NODE_TYPE::BRANCH_ELSE_IF: {
-                        AnyValue e = eval(b->children[0], returnContext, ownedGlobalVariables, memTable);
+                        // make a new owned variables array since this evaluation is considered a "separate" line
+                        auto ownedVariables = make_shared<vector<size_t>>();
+                        AnyValue e = eval(b->children[0], returnContext, ownedVariables, memTable);
+
+                        // unlock since we no longer own the variables
+                        for(auto &i : *ownedVariables)
+                            GlobalValues[i].symbol_mutex->unlock();
+
                         double t = extractNumValue(e, b->children[0]);
                         if(t != 0) {
                             eval(b->children[1], returnContext, ownedGlobalVariables, newScopeWithParent(memTable));
@@ -662,7 +668,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_EQ: {
             AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
-            bool res;
+            bool res = false;
 
             if(root->tok->type == TOK_TYPE::CMP_EQUALS) {
                 if(one.type == EVAL_RES_TYPE::String && two.type == EVAL_RES_TYPE::String)
@@ -685,7 +691,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
         case NODE_TYPE::EXP_CMP: {
             AnyValue one = eval(root->children[0], returnContext, ownedGlobalVariables, memTable);
             AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
-            bool res;
+            bool res = false;
 
             switch(root->tok->type) {
                 case TOK_TYPE::GREATER_THAN:
@@ -719,7 +725,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             AnyValue two = eval(root->children[1], returnContext, ownedGlobalVariables, memTable);
             checkForAllowedDtype(one, {EVAL_RES_TYPE::Num}, root->children[0]);
             checkForAllowedDtype(two, {EVAL_RES_TYPE::Num}, root->children[1]);
-            SCRIBBLE_NUM_REP res;
+            SCRIBBLE_NUM_REP res = 0;
 
             if(root->tok->type == TOK_TYPE::SHIFT_LEFT)
                 res = *(SCRIBBLE_NUM_REP*)one.value.get() << *(SCRIBBLE_NUM_REP*)two.value.get();
@@ -851,190 +857,4 @@ EVAL_RES_TYPE dtypeFromIdent(shared_ptr<AST_Node> node) {
         throwScribbleError(node, "Data type not recognized", ERR_TYPE::UNKNOWN_DTYPE);
 
     return it->second;
-}
-
-
-void checkForAllowedDtype(AnyValue val, vector<EVAL_RES_TYPE> dtypes, shared_ptr<AST_Node> &node) {
-    for(EVAL_RES_TYPE &t : dtypes) {
-        if(val.type == t) return;
-    }
-
-    throwScribbleError(node, "Invalid value for datatype", ERR_TYPE::INVALID_ASSIGNMENT);
-}
-
-// returns true if the passed type is a primitive type
-bool isPrimitive(EVAL_RES_TYPE t) {
-    return t == EVAL_RES_TYPE::Bool || t == EVAL_RES_TYPE::Float || t == EVAL_RES_TYPE::Num;
-}
-
-void checkSingleVal(AnyValue val, shared_ptr<AST_Node> &node) {
-    if(val.dimension.size() != 1 || val.dimension[0] != 1)
-        throwScribbleError(node, "Value is array", ERR_TYPE::BAD_TYPE);
-}
-
-shared_ptr<void> defaultValueFor(EVAL_RES_TYPE resType) {
-    switch(resType) {
-        case EVAL_RES_TYPE::None:
-            return make_shared<int>(0); // Trying to avoid the existence of nullptrs
-        case EVAL_RES_TYPE::Num:
-            return make_shared<SCRIBBLE_NUM_REP>(0);
-        case EVAL_RES_TYPE::Float:
-            return make_shared<SCRIBBLE_FLOAT_REP>(0);
-        case EVAL_RES_TYPE::Bool:
-            return make_shared<bool>(false);
-        case EVAL_RES_TYPE::String:
-            return make_shared<string>("");
-        case EVAL_RES_TYPE::Object:
-            return make_shared<TemplateObjects::Object>();
-        default:
-            break; // TODO: custom values
-    }
-
-    return make_shared<int>(0);
-}
-
-// Make a duplicate of a variable
-shared_ptr<void> duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val) {
-    switch(type) {
-        case EVAL_RES_TYPE::None:
-            return make_shared<int>(0);
-        case EVAL_RES_TYPE::Num:
-            return make_shared<SCRIBBLE_NUM_REP>(*(SCRIBBLE_NUM_REP*)val.get());
-        case EVAL_RES_TYPE::Float:
-            return make_shared<SCRIBBLE_FLOAT_REP>(*(SCRIBBLE_FLOAT_REP*)val.get());
-        case EVAL_RES_TYPE::Bool:
-            return make_shared<bool>(*(bool*)val.get());
-        case EVAL_RES_TYPE::String:
-            return make_shared<string>(*(string*)val.get());
-        case EVAL_RES_TYPE::Object: {
-            TemplateObjects::Object clone((TemplateObjects::Object*)val.get());
-            return make_shared<TemplateObjects::Object>(clone);
-        }
-        default:
-            break; // TODO: custom values
-    }
-
-    return make_shared<int>(0);
-}
-
-// recursive method of creating a new <<matrix of variable size
-shared_ptr<void> newArrayOfShape(vector<int> shape, EVAL_RES_TYPE dtype) {
-    auto arr = make_shared<vector<AnyValue>>();
-    auto start = shape.begin()+1;
-    vector<int> sub(start, shape.end());
-
-    for(int i=0; i<shape[0]; i++) {
-        if(shape.size() == 1) {
-            arr->push_back(AnyValue {
-                {1},
-                defaultValueFor(dtype),
-                dtype
-            });
-        } else {
-            arr->push_back(AnyValue {
-                sub,
-                newArrayOfShape(sub, dtype),
-                dtype
-            });
-        }
-    }
-
-    return arr;
-}
-
-AnyValue valueFromArrayIndex(AnyValue arr, vector<int> index) {
-    // bounds check
-    if(index.size() == 0 || index[0] < 0 || index[0] >= arr.dimension[0])
-        throwScribbleError(nullptr, "Array index out of bounds", ERR_TYPE::OOB);
-    
-    // I'm so sorry for this line
-    // Getting the "index[0]" index from the array casted from a void pointer
-    AnyValue res = (*(vector<AnyValue>*)arr.value.get()) [index[0]];
-
-    if(index.size() == 1)
-        return res;
-
-    auto start = index.begin()+1;
-    vector<int> sub(start, index.end());
-    return valueFromArrayIndex(res, sub);
-}
-
-pair<shared_ptr<void>, EVAL_RES_TYPE> castNumValue(double val, EVAL_RES_TYPE type1, EVAL_RES_TYPE type2) {
-    if(type1 == type2 && type1 == EVAL_RES_TYPE::Num)
-        return {make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)val), EVAL_RES_TYPE::Num};
-    return {make_shared<SCRIBBLE_FLOAT_REP>((SCRIBBLE_FLOAT_REP)val), EVAL_RES_TYPE::Float};
-}
-
-double extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
-    // Check if this is an array and if so, throw because we can't get a single value
-    if(val.dimension.size() != 1 || val.dimension[0] != 1)
-        throwScribbleError(node, "Expected value, got collection", ERR_TYPE::BAD_TYPE);
-
-    switch(val.type) {
-        case EVAL_RES_TYPE::None:
-            throwScribbleError(node, "None", ERR_TYPE::BAD_TYPE);
-        case EVAL_RES_TYPE::Num:
-            return *(SCRIBBLE_NUM_REP*)val.value.get();
-        case EVAL_RES_TYPE::Float:
-            return *(SCRIBBLE_FLOAT_REP*)val.value.get();
-        case EVAL_RES_TYPE::Bool:
-            return *(bool*)val.value.get() ? 1 : 0;
-        case EVAL_RES_TYPE::String:
-            throwScribbleError(node, "String", ERR_TYPE::BAD_TYPE);
-        case EVAL_RES_TYPE::Object:
-            throwScribbleError(node, "Object", ERR_TYPE::BAD_TYPE);
-        default:
-            throwScribbleError(node, "Unknown", ERR_TYPE::BAD_TYPE);
-    }
-
-    return 0;
-}
-
-void castAndAssign(AnyValue &val, double newVal, bool inPlace) {
-    switch(val.type) {
-         case EVAL_RES_TYPE::Num:
-            if(inPlace)
-                *(SCRIBBLE_NUM_REP*)val.value.get() = (SCRIBBLE_NUM_REP)newVal;
-            else
-                val.value = make_shared<SCRIBBLE_NUM_REP>((SCRIBBLE_NUM_REP)newVal);
-            break;
-        case EVAL_RES_TYPE::Float:
-            if(inPlace)
-                *(SCRIBBLE_FLOAT_REP*)val.value.get() = (SCRIBBLE_FLOAT_REP)newVal;
-            else
-                val.value = make_shared<SCRIBBLE_FLOAT_REP>((SCRIBBLE_FLOAT_REP)newVal);
-            break;
-        case EVAL_RES_TYPE::Bool:
-            if(inPlace)
-                *(bool*)val.value.get() = (bool)newVal;
-            else
-                val.value = make_shared<bool>((bool)newVal);
-            break;
-        default:
-            log("Interpreter -> castAndAssign: Unexpected data type"); // Technically a developer error, not a user error, no need to throw
-            break;
-    }
-}
-
-void indexVariable(AnyValue* val, AST_Node* idx, shared_ptr<vector<size_t>> ownedGlobalVariables, shared_ptr<SymbolTable> memTable) {
-    vector<int> index;
-    for(auto &indexNode : idx->children) {
-        AnyValue dim = eval(indexNode, nullptr, ownedGlobalVariables, memTable);
-        index.push_back(
-            extractNumValue(dim, indexNode)
-        );
-    }
-
-    *val = valueFromArrayIndex(*val, index);
-}
-
-void throwScribbleError(shared_ptr<AST_Node> node, string message, ERR_TYPE type, shared_ptr<ScribbleErr> parent) {
-    size_t l = 0, c = 0;
-
-    if(node != nullptr && node->tok != nullptr) {
-        l = node->tok->line;
-        c = node->tok->start_col;
-    }
-
-    throw ScribbleErr {l, c, message, type, parent};
 }

@@ -1,16 +1,17 @@
-num global = 3
-float test = global + 2.2
+GameObject player
+
 :START: {
-    :print("Accessing global... "+global)
-    :print("Accessing other global... "+test)
-    :print("Doing it again... "+global)
-    global += 1
-    :print("Adding to it... "+global)
-    global = 3 + global
-    :print("Adding to it... "+global)
-    :print("Combining the two: " + (global+test))
+    player.width = 50
+    player.height = 50
+    player.color_r = 0
 }
 
 :UPDATE: {
-    return 0
+    player.x = $MOUSE_X
+    player.y = $MOUSE_Y
+    player.draw()
+
+    if $BTN_ESC {
+        return
+    }
 }

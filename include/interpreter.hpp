@@ -20,7 +20,7 @@ namespace Interpreter {
         Float,
         Bool,
         String,
-        Object,
+        GameObject,
 
         RETURN, // for returning from a function without a value
     };
