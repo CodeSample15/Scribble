@@ -7,14 +7,11 @@ Object player
 }
 
 :UPDATE: {
-    player.x += 0.2
-    if player.x > $SCREEN_WIDTH {
-        player.x = 0
-        player.y += 1
-    }
-
-    :print("X: "+$JOY_X)
-    :print("Y: "+$JOY_Y)
-
+    player.x += $JOY_X * $DTIME * 5
+    player.y -= $JOY_Y * $DTIME * 5
     player.draw()
+
+    if $BTN_ESC {
+        return
+    }
 }
