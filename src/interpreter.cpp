@@ -36,7 +36,7 @@ void Interpreter::InitRuntime() {
         {"num", EVAL_RES_TYPE::Num},
         {"float", EVAL_RES_TYPE::Float},
         {"string", EVAL_RES_TYPE::String},
-        {"Object", EVAL_RES_TYPE::Object},
+        {"GameObject", EVAL_RES_TYPE::GameObject},
     };
 
     BuiltIn::init(BuiltInVariables, BuiltInFunctions);
@@ -324,7 +324,7 @@ AnyValue Interpreter::eval(shared_ptr<AST_Node> root, shared_ptr<AnyValue> retur
             for(size_t i=1; i < root->children.size(); i++) {
                 // in order for the next node in the chain to access something in tmp, tmp must be something that can be accessed via `.`
                 try {
-                    checkForAllowedDtype(tmp, {EVAL_RES_TYPE::Object}, root->children[i]);
+                    checkForAllowedDtype(tmp, {EVAL_RES_TYPE::GameObject}, root->children[i]);
                 } catch(ScribbleErr &e) {
                     // catch error and throw new one with better error message and type
                     throwScribbleError(root->children[i-1], "Value has no fields to access", ERR_TYPE::BAD_TYPE);

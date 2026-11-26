@@ -400,7 +400,7 @@ fun test_short_circuit() {
 }
 
 fun test_objects() {
-    Object test
+    GameObject test
 
     // test default values
     if test.x != 0 || test.y != 0 || !test.visible {
@@ -427,7 +427,7 @@ fun test_objects() {
         return 1
     }
 
-    Object[5] enemies
+    GameObject[5] enemies
     enemies[0].x += 1
     if enemies[0].x != 1 || enemies[1].x != 0 {
         return 1

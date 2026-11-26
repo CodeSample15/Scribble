@@ -8,7 +8,7 @@ using namespace Interpreter;
 
 TemplateObjects::VariableWithProperties::~VariableWithProperties() {};
 
-TemplateObjects::Object::Object() {
+TemplateObjects::GameObject::GameObject() {
     variables.push_back({"x", AnyValue{
         {1},
         make_shared<SCRIBBLE_FLOAT_REP>(0),
@@ -75,7 +75,7 @@ TemplateObjects::Object::Object() {
     isShape = true;
 }
 
-TemplateObjects::Object::Object(Object* other) : Object() {
+TemplateObjects::GameObject::GameObject(GameObject* other) : GameObject() {
     // copy each value over from the other object
     for(auto &i : variables) {
         switch(i.second.type) {
@@ -95,7 +95,7 @@ TemplateObjects::Object::Object(Object* other) : Object() {
     }
 }
 
-AnyValue TemplateObjects::Object::CallFunction(string name, vector<Interpreter::AnyValue> args) {
+AnyValue TemplateObjects::GameObject::CallFunction(string name, vector<Interpreter::AnyValue> args) {
     if(name == "draw") {
         Graphics::drawObj(this);
         return AnyValue{{}, nullptr, EVAL_RES_TYPE::None};
@@ -109,7 +109,7 @@ AnyValue TemplateObjects::Object::CallFunction(string name, vector<Interpreter::
     return AnyValue{};
 }
 
-AnyValue TemplateObjects::Object::GetValue(string name) {
+AnyValue TemplateObjects::GameObject::GetValue(string name) {
     for(auto &i : variables) {
         if(i.first == name)
             return i.second;
@@ -119,7 +119,7 @@ AnyValue TemplateObjects::Object::GetValue(string name) {
     return AnyValue{};
 }
 
-void TemplateObjects::Object::setColor(int r, int g, int b, int a) {
+void TemplateObjects::GameObject::setColor(int r, int g, int b, int a) {
     r = clamp(r, 0, 255);
     g = clamp(g, 0, 255);
     b = clamp(b, 0, 255);
@@ -131,7 +131,7 @@ void TemplateObjects::Object::setColor(int r, int g, int b, int a) {
     *(SCRIBBLE_NUM_REP*)GetValue("color_a").value.get() = a;
 }
 
-void TemplateObjects::Object::updateIcon() {
+void TemplateObjects::GameObject::updateIcon() {
     float x = *(SCRIBBLE_FLOAT_REP*)GetValue("x").value.get();
     float y = *(SCRIBBLE_FLOAT_REP*)GetValue("y").value.get();
     float width = *(SCRIBBLE_FLOAT_REP*)GetValue("width").value.get();

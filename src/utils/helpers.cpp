@@ -35,8 +35,8 @@ shared_ptr<void> Utils::defaultValueFor(EVAL_RES_TYPE resType) {
             return make_shared<bool>(false);
         case EVAL_RES_TYPE::String:
             return make_shared<string>("");
-        case EVAL_RES_TYPE::Object:
-            return make_shared<TemplateObjects::Object>();
+        case EVAL_RES_TYPE::GameObject:
+            return make_shared<TemplateObjects::GameObject>();
         default:
             break; // TODO: custom values
     }
@@ -57,9 +57,9 @@ shared_ptr<void> Utils::duplicateValue(EVAL_RES_TYPE type, shared_ptr<void> val)
             return make_shared<bool>(*(bool*)val.get());
         case EVAL_RES_TYPE::String:
             return make_shared<string>(*(string*)val.get());
-        case EVAL_RES_TYPE::Object: {
-            TemplateObjects::Object clone((TemplateObjects::Object*)val.get());
-            return make_shared<TemplateObjects::Object>(clone);
+        case EVAL_RES_TYPE::GameObject: {
+            TemplateObjects::GameObject clone((TemplateObjects::GameObject*)val.get());
+            return make_shared<TemplateObjects::GameObject>(clone);
         }
         default:
             break; // TODO: custom values
@@ -132,7 +132,7 @@ double Utils::extractNumValue(AnyValue &val, shared_ptr<AST_Node> &node) {
             return *(bool*)val.value.get() ? 1 : 0;
         case EVAL_RES_TYPE::String:
             throwScribbleError(node, "String", ERR_TYPE::BAD_TYPE);
-        case EVAL_RES_TYPE::Object:
+        case EVAL_RES_TYPE::GameObject:
             throwScribbleError(node, "Object", ERR_TYPE::BAD_TYPE);
         default:
             throwScribbleError(node, "Unknown", ERR_TYPE::BAD_TYPE);

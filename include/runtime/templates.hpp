@@ -18,10 +18,10 @@ namespace TemplateObjects {
     };
 
     // Language level datatype, represents physical items on the screen
-    class Object : public VariableWithProperties {
+    class GameObject : public VariableWithProperties {
     public:
-        Object();
-        Object(Object* other); // for copies
+        GameObject();
+        GameObject(GameObject* other); // for copies
 
         Interpreter::AnyValue CallFunction(std::string name, std::vector<Interpreter::AnyValue> args);
         Interpreter::AnyValue GetValue(std::string name);

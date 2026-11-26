@@ -137,7 +137,7 @@ std::string data_type_to_string(Interpreter::EVAL_RES_TYPE type) {
         case Interpreter::Float: return "float";
         case Interpreter::Bool: return "bool";
         case Interpreter::String: return "string";
-        case Interpreter::Object: return "Object";
+        case Interpreter::GameObject: return "GameObject";
 
         default: return "Other";
     }
