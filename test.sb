@@ -7,8 +7,8 @@ GameObject player
 }
 
 :UPDATE: {
-    player.x += $JOY_X * $DTIME * 5
-    player.y -= $JOY_Y * $DTIME * 5
+    player.x = $MOUSE_X
+    player.y = $MOUSE_Y
     player.draw()
 
     if $BTN_ESC {

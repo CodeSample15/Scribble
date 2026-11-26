@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include "runtime/graphics.hpp"
 
 using namespace Graphics;
@@ -50,4 +49,9 @@ bool Graphics::windowOpen() {
 void Graphics::close() {
     if(windowPtr == nullptr) return;
     windowPtr->close();
+}
+
+sf::Vector2i Graphics::getMouseWindowLoc() {
+    if(windowPtr == nullptr) return sf::Vector2i({0, 0});
+    return sf::Mouse::getPosition(*windowPtr);
 }

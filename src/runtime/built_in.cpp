@@ -32,6 +32,9 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
     memory.emplace_back("BTN_C", AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool});
     memory.emplace_back("BTN_ESC", AnyValue{{1}, make_shared<bool>(false), EVAL_RES_TYPE::Bool});
 
+    memory.emplace_back("MOUSE_X", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
+    memory.emplace_back("MOUSE_Y", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
+
     memory.emplace_back("SCREEN_WIDTH", AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(0), EVAL_RES_TYPE::Num});
     memory.emplace_back("SCREEN_HEIGHT", AnyValue{{1}, make_shared<SCRIBBLE_NUM_REP>(0), EVAL_RES_TYPE::Num});
     memory.emplace_back("DTIME", AnyValue{{1}, make_shared<SCRIBBLE_FLOAT_REP>(0), EVAL_RES_TYPE::Float});
@@ -43,25 +46,41 @@ void BuiltIn::init(SymbolTableValues &memory, PreMadeFunctions &funcs) {
 }
 
 void BuiltIn::update(SymbolTableValues &memory) {
+    sf::Vector2i mouseLocalPosition = Graphics::getMouseWindowLoc();
+
     for(auto &p : memory) {
         if (p.first == "JOY_X") {
             // TODO: use SFML Joystick to make Scribble work with joysticks
             *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Right) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Left) ? -1 : 0);
-        } else if (p.first == "JOY_Y") {
+        } 
+        else if (p.first == "JOY_Y") {
             *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Up) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Down) ? -1 : 0);
-        } else if (p.first == "BTN_A") {
+        } 
+        else if (p.first == "BTN_A") {
             *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Z);
-        } else if (p.first == "BTN_B") {
+        } 
+        else if (p.first == "BTN_B") {
             *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::X);
-        } else if (p.first == "BTN_C") {
+        } 
+        else if (p.first == "BTN_C") {
             *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::C);
-        } else if (p.first == "BTN_ESC") {
+        } 
+        else if (p.first == "BTN_ESC") {
             *(bool*)p.second.value.get() = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Escape);
-        } else if (p.first == "SCREEN_WIDTH") {
+        } 
+        else if (p.first == "MOUSE_X") {
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = mouseLocalPosition.x;
+        } 
+        else if (p.first == "MOUSE_Y") {
+            *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = mouseLocalPosition.y;
+        } 
+        else if (p.first == "SCREEN_WIDTH") {
             *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenWidth;
-        } else if (p.first == "SCREEN_HEIGHT") {
+        } 
+        else if (p.first == "SCREEN_HEIGHT") {
             *(SCRIBBLE_NUM_REP*)p.second.value.get() = Graphics::ScreenHeight;
-        } else if (p.first == "DTIME") {
+        } 
+        else if (p.first == "DTIME") {
             auto now = chrono::steady_clock::now();
             *(SCRIBBLE_FLOAT_REP*)p.second.value.get() = RanFirstFrame ? 
                                                         (float)chrono::duration_cast<chrono::nanoseconds>(now - LastFrameTime).count() / 10000000
@@ -140,6 +159,8 @@ void assert_arg_types(string funName, vector<EVAL_RES_TYPE> types, vector<AnyVal
 
 AnyValue noValue() {
     AnyValue t;
+    t.dimension = {};
+    t.value = nullptr;
     t.type = EVAL_RES_TYPE::None;
     return t;
 }

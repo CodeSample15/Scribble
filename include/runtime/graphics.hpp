@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Graphics.hpp>
 #include <cstdint>
 #include "templates.hpp"
 
@@ -11,7 +12,8 @@ namespace Graphics {
     void renderScreen();
     void clearScreen();
     void pollWindow();
-
     bool windowOpen();
     void close();
+
+    sf::Vector2i getMouseWindowLoc();
 };

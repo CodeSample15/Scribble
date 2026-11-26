@@ -9,6 +9,7 @@ using namespace Interpreter;
 TemplateObjects::VariableWithProperties::~VariableWithProperties() {};
 
 TemplateObjects::GameObject::GameObject() {
+    // TODO: this can be cleaned up with a helper function so easily
     variables.push_back({"x", AnyValue{
         {1},
         make_shared<SCRIBBLE_FLOAT_REP>(0),
